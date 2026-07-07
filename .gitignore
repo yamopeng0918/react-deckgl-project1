@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.vercel/
+coverage/
+
+*.log
+*.pyc
+__pycache__/
+
+.DS_Store

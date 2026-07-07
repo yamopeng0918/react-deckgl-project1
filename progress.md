@@ -545,3 +545,27 @@ Completed so far:
 - Remaining todo items are unchanged:
   - Optional: add click summary for heat areas.
   - Manual browser check: verify heatmap and point layers remain visually readable together.
+
+## 2026-07-07 Vercel Deployment Fix
+
+- Investigated the failed Vercel deployment path.
+- Confirmed the production frontend build succeeds locally with `npm.cmd run build`, so the root issue is not the Vite/React build itself.
+- Found deployment-source risk: `node_modules/`, `dist/`, Vite dev logs, and Python `__pycache__` files were tracked in Git.
+- Added `.gitignore` so local dependencies, generated build output, logs, cache files, coverage, and `.vercel/` are excluded going forward.
+- Added `vercel.json` with explicit Vercel settings:
+  - framework: Vite
+  - install command: `npm ci`
+  - build command: `npm run build`
+  - output directory: `dist`
+  - SPA rewrite fallback to `index.html`
+- Added `engines.node >=20.19.0` to `package.json` and `package-lock.json` so Vercel does not build the Vite 7 app with an incompatible old Node version.
+- Removed tracked deployment artifacts from the Git index while keeping the local files on disk:
+  - `node_modules/`
+  - `dist/`
+  - `vite-dev.log`
+  - `vite-dev.err.log`
+  - Python `__pycache__` files
+- Verification:
+  - `npm.cmd test -- --run` passed: 7 test files, 22 tests.
+  - `npm.cmd run build` passed. The existing large chunk warning remains expected because deck.gl and MapLibre are large dependencies.
+  - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
