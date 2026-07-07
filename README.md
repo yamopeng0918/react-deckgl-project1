@@ -100,6 +100,25 @@ Production build:
 npm.cmd run build
 ```
 
+## Vercel Deployment
+
+This project is deployed as a Vite static frontend.
+
+Vercel settings are recorded in `vercel.json`:
+
+- Install command: `npm ci`
+- Build command: `npm run build`
+- Output directory: `dist`
+- Node.js: `>=20.19.0`
+- SPA fallback: all routes rewrite to `index.html`
+
+Deployment source hygiene:
+
+- Do not commit `node_modules/`.
+- Do not commit generated `dist/`.
+- Do not commit local logs or Python `__pycache__` files.
+- `public/data/earthquakes.json` is the frontend data file that must be committed when the processed dataset changes.
+
 ## Known Limitations
 
 - Base map tiles use OpenStreetMap and require network access for the background map.

@@ -559,6 +559,7 @@ Completed so far:
   - output directory: `dist`
   - SPA rewrite fallback to `index.html`
 - Added `engines.node >=20.19.0` to `package.json` and `package-lock.json` so Vercel does not build the Vite 7 app with an incompatible old Node version.
+- Updated `README.md` with the Vercel deployment settings and deployment-source hygiene notes.
 - Removed tracked deployment artifacts from the Git index while keeping the local files on disk:
   - `node_modules/`
   - `dist/`
