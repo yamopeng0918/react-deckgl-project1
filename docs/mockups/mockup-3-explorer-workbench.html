@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockup 3 - 探索工作台</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", "Noto Sans TC", Arial, sans-serif;
+      --ink: #1f2528;
+      --muted: #657079;
+      --line: #cfd7dd;
+      --bg: #f3f5f2;
+      --panel: #ffffff;
+      --green: #346b5b;
+      --red: #b43a32;
+      --water: #d6e4e6;
+      --land: #d5dfc9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 62px minmax(360px, 48vh) 1fr;
+    }
+    header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 0 18px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+    .search {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: var(--muted);
+      max-width: 520px;
+      width: 100%;
+      justify-self: center;
+      font-size: 13px;
+      background: #fafbfb;
+    }
+    .status {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .map-row {
+      display: grid;
+      grid-template-columns: 260px 1fr 300px;
+      min-height: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .filters,
+    .summary {
+      background: var(--panel);
+      padding: 16px;
+      overflow: auto;
+    }
+    .filters { border-right: 1px solid var(--line); }
+    .summary { border-left: 1px solid var(--line); }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+    .field {
+      padding: 13px 0;
+      border-top: 1px solid var(--line);
+    }
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .field span { color: var(--muted); font-weight: 650; }
+    .track {
+      height: 7px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #e4e8ea 0 22%, var(--green) 22% 88%, #e4e8ea 88%);
+    }
+    .checks {
+      display: grid;
+      gap: 9px;
+      font-size: 13px;
+    }
+    .checks div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+    }
+    .toggle {
+      width: 34px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--green);
+      position: relative;
+    }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      right: 3px;
+      top: 3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: white;
+    }
+    details {
+      border-top: 1px solid var(--line);
+    }
+    details:first-of-type {
+      border-top: 0;
+    }
+    summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 42px;
+      font-size: 14px;
+      font-weight: 750;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: "+";
+      width: 22px;
+      height: 22px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    details[open] summary::after {
+      content: "-";
+    }
+    .map {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(0deg, rgba(255,255,255,.32) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.32) 1px, transparent 1px),
+        var(--water);
+      background-size: 38px 38px;
+    }
+    .island {
+      position: absolute;
+      left: 47%;
+      top: 4%;
+      width: 135px;
+      height: 390px;
+      border-radius: 48% 52% 44% 56% / 10% 18% 82% 90%;
+      transform: rotate(18deg);
+      background: var(--land);
+      border: 1px solid rgba(82,111,81,.34);
+    }
+    .heat {
+      position: absolute;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(180,58,50,.72), rgba(230,182,79,.38) 45%, transparent 72%);
+      mix-blend-mode: multiply;
+    }
+    .h1 { left: 53%; top: 32%; width: 150px; height: 150px; }
+    .h2 { left: 48%; top: 60%; width: 210px; height: 210px; }
+    .h3 { left: 56%; top: 78%; width: 120px; height: 120px; }
+    .dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid #fff;
+      background: #79282d;
+      box-shadow: 0 2px 5px rgba(0,0,0,.3);
+    }
+    .d1 { left: 52%; top: 21%; }
+    .d2 { left: 55%; top: 34%; }
+    .d3 { left: 50%; top: 48%; }
+    .d4 { left: 47%; top: 63%; }
+    .d5 { left: 58%; top: 73%; }
+    .region-list {
+      display: grid;
+      gap: 10px;
+      padding-bottom: 12px;
+    }
+    .region {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fbfcfb;
+    }
+    .region strong {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .region p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .bottom {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      min-height: 0;
+    }
+    .table-wrap {
+      background: #fff;
+      overflow: auto;
+    }
+    .table-head,
+    .details-head {
+      min-height: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 750;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th,
+    td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      white-space: nowrap;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: #f8faf9;
+      color: #465159;
+      font-size: 12px;
+    }
+    .details {
+      border-left: 1px solid var(--line);
+      background: #fff;
+    }
+    .details dl {
+      display: grid;
+      grid-template-columns: 86px 1fr;
+      gap: 9px;
+      font-size: 13px;
+      margin: 0;
+      padding: 16px;
+    }
+    .details dt { color: var(--muted); }
+    .details dd { margin: 0; font-weight: 650; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 5px;
+      padding: 0 8px;
+      background: #f3dfd9;
+      color: #8d2f2a;
+      font-weight: 750;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>台灣地震熱區探索器</h1>
+      <div class="search">搜尋位置、年份或地震編號</div>
+      <div class="status"><strong>16,365</strong><span>筆資料已載入</span></div>
+    </header>
+
+    <section class="map-row">
+      <aside class="filters">
+        <h2>篩選條件</h2>
+        <div class="field">
+          <label>年份 <span>1995 - 2025</span></label>
+          <div class="track"></div>
+        </div>
+        <div class="field">
+          <label>規模 <span>M 2.0 - 7.3</span></label>
+          <div class="track"></div>
+        </div>
+        <details>
+          <summary>更多篩選</summary>
+          <div class="field">
+            <label>深度 <span>0 - 120 km</span></label>
+            <div class="track"></div>
+          </div>
+          <div class="field checks">
+            <div>年度資料表 <span class="toggle"></span></div>
+          </div>
+        </details>
+        <div class="field checks">
+          <div>熱區圖層 <span class="toggle"></span></div>
+          <div>地震點位 <span class="toggle"></span></div>
+        </div>
+      </aside>
+
+      <main class="map" aria-label="工作台地圖示意">
+        <div class="island"></div>
+        <div class="heat h1"></div>
+        <div class="heat h2"></div>
+        <div class="heat h3"></div>
+        <div class="dot d1"></div>
+        <div class="dot d2"></div>
+        <div class="dot d3"></div>
+        <div class="dot d4"></div>
+        <div class="dot d5"></div>
+      </main>
+
+      <aside class="summary">
+        <details open>
+          <summary>熱區摘要</summary>
+          <div class="region-list">
+            <article class="region">
+              <strong>花蓮近海 <span>高</span></strong>
+              <p>東部海域點位密集，熱區強度在目前篩選條件下最高。</p>
+            </article>
+            <article class="region">
+              <strong>嘉義山區 <span>中</span></strong>
+              <p>近期選取範圍內有多筆中規模淺層地震。</p>
+            </article>
+            <article class="region">
+              <strong>台東近海 <span>中</span></strong>
+              <p>點位沿海岸與外海分布，適合搭配年份篩選觀察。</p>
+            </article>
+          </div>
+        </details>
+      </aside>
+    </section>
+
+    <section class="bottom">
+      <details class="table-wrap" open>
+        <summary class="table-head">
+          <span>地震資料表</span>
+          <span class="hint">顯示最近 4 筆</span>
+        </summary>
+        <table>
+          <thead>
+            <tr>
+              <th>時間</th>
+              <th>規模</th>
+              <th>深度</th>
+              <th>最大震度</th>
+              <th>經度</th>
+              <th>緯度</th>
+              <th>位置</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2024-12-30 03:51</td>
+              <td><span class="badge">M 5.2</span></td>
+              <td>15.1 km</td>
+              <td>4</td>
+              <td>120.685</td>
+              <td>23.5383</td>
+              <td>嘉義縣政府東北東方</td>
+            </tr>
+            <tr>
+              <td>2025-01-31 23:19</td>
+              <td>M 4.0</td>
+              <td>52.1 km</td>
+              <td>1</td>
+              <td>121.684</td>
+              <td>23.9102</td>
+              <td>花蓮縣政府東南方</td>
+            </tr>
+            <tr>
+              <td>2025-09-29 05:23</td>
+              <td>M 5.4</td>
+              <td>75.8 km</td>
+              <td>2</td>
+              <td>123.343</td>
+              <td>24.3172</td>
+              <td>宜蘭縣政府東南東方</td>
+            </tr>
+            <tr>
+              <td>1999-09-21 01:47</td>
+              <td>M 7.3</td>
+              <td>8.0 km</td>
+              <td>7</td>
+              <td>120.82</td>
+              <td>23.85</td>
+              <td>南投縣集集附近</td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+      <details class="details" open>
+        <summary class="details-head">
+          <span>選取資料</span>
+          <span class="hint">可收納</span>
+        </summary>
+        <dl>
+          <dt>事件</dt><dd>514</dd>
+          <dt>時間</dt><dd>2024-12-30 03:51:36</dd>
+          <dt>規模</dt><dd>M 5.2</dd>
+          <dt>深度</dt><dd>15.1 km</dd>
+          <dt>最大震度</dt><dd>4</dd>
+          <dt>位置</dt><dd>嘉義縣政府東北東方 40.9 公里</dd>
+          <dt>來源</dt><dd>地震活動彙整_2024.csv</dd>
+        </dl>
+      </details>
+    </section>
+  </div>
+</body>
+</html>

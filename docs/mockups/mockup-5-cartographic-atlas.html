@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockup 5 - Cartographic Atlas</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", "Noto Sans TC", Arial, sans-serif;
+      color: #24302b;
+      --bg: #eef3ee;
+      --paper: #fbfcf8;
+      --line: #cbd5cc;
+      --muted: #637168;
+      --green: #3d765d;
+      --coral: #c84d3d;
+      --gold: #dfaa3e;
+      --water: #d7e8eb;
+      --land: #d2dfc8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+    }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 74px 1fr 112px;
+      gap: 16px;
+      padding: 16px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 18px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .toolbar button {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: #24302b;
+      padding: 0 12px;
+      font-weight: 750;
+    }
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      gap: 16px;
+    }
+    aside,
+    .map-card,
+    .right,
+    .year-strip {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    aside,
+    .right {
+      padding: 18px;
+      overflow: auto;
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 15px;
+    }
+    .legend-item {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .swatch-heat {
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--gold), var(--coral), #792b34);
+    }
+    .swatch-point {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--coral);
+      border: 3px solid white;
+      box-shadow: 0 0 0 1px rgba(36,48,43,.28);
+      justify-self: center;
+    }
+    .filter-card {
+      border-top: 1px solid var(--line);
+      padding: 16px 0;
+    }
+    .filter-card strong {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    .slider {
+      height: 9px;
+      margin-top: 13px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #dfe7df 0 16%, var(--green) 16% 88%, #dfe7df 88%);
+    }
+    .map-card {
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+    .map-title {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .map {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #b7c7bd;
+      background:
+        linear-gradient(rgba(49,78,68,.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(49,78,68,.07) 1px, transparent 1px),
+        var(--water);
+      background-size: 64px 64px;
+    }
+    .lat,
+    .lon {
+      position: absolute;
+      color: rgba(36,48,43,.42);
+      font-size: 11px;
+      font-weight: 750;
+    }
+    .lat { left: 12px; }
+    .lon { bottom: 10px; }
+    .l1 { top: 18%; }
+    .l2 { top: 48%; }
+    .l3 { top: 78%; }
+    .o1 { left: 18%; }
+    .o2 { left: 48%; }
+    .o3 { left: 78%; }
+    .taiwan {
+      position: absolute;
+      left: 47%;
+      top: 7%;
+      width: 238px;
+      height: 650px;
+      transform: rotate(18deg);
+      background: linear-gradient(105deg, #bdd2b5, var(--land) 50%, #edf2da);
+      border: 1px solid rgba(71,103,82,.42);
+      border-radius: 48% 52% 43% 57% / 10% 18% 82% 90%;
+    }
+    .shore-label {
+      position: absolute;
+      color: rgba(36,48,43,.5);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .sl1 { left: 57%; top: 24%; }
+    .sl2 { left: 42%; top: 58%; }
+    .heat {
+      position: absolute;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: multiply;
+      background: radial-gradient(circle, rgba(121,43,52,.7), rgba(200,77,61,.44) 34%, rgba(223,170,62,.22) 68%, transparent 72%);
+    }
+    .h1 { left: 55%; top: 30%; width: 180px; height: 180px; }
+    .h2 { left: 50%; top: 56%; width: 290px; height: 290px; }
+    .h3 { left: 58%; top: 78%; width: 155px; height: 155px; }
+    .point {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #7b2330;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 7px rgba(36,48,43,.24);
+    }
+    .p1 { left: 56%; top: 28%; }
+    .p2 { left: 49%; top: 51%; }
+    .p3 { left: 54%; top: 57%; }
+    .p4 { left: 58%; top: 76%; }
+    .p5 { left: 46%; top: 67%; }
+    .summary-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+    .summary-card strong {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .summary-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .year-strip {
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 16px;
+    }
+    .year-strip strong {
+      font-size: 15px;
+    }
+    .ticks {
+      display: grid;
+      grid-template-columns: repeat(31, 1fr);
+      align-items: center;
+      gap: 3px;
+    }
+    .tick {
+      height: 34px;
+      border-radius: 4px;
+      background: #dbe5db;
+    }
+    .tick.active {
+      background: linear-gradient(180deg, var(--green), #77a88b);
+    }
+    .year-strip button {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: #24302b;
+      padding: 0 12px;
+      font-weight: 750;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>台灣地震熱區探索器</h1>
+      <div class="toolbar">
+        <button>熱區</button>
+        <button>點位</button>
+        <button>重設視角</button>
+      </div>
+    </header>
+    <section class="workspace">
+      <aside>
+        <h2>圖例與篩選</h2>
+        <div class="legend-item"><span class="swatch-heat"></span><span>顏色越深表示地震發生次數越集中。</span></div>
+        <div class="legend-item"><span class="swatch-point"></span><span>單一地震點位，保留白色描邊避免被熱區吃掉。</span></div>
+        <div class="filter-card"><strong><span>年份</span><span>1995 - 2025</span></strong><div class="slider"></div></div>
+        <div class="filter-card"><strong><span>震級</span><span>M 2.0 - 7.3</span></strong><div class="slider"></div></div>
+        <div class="filter-card"><strong><span>深度</span><span>0 - 120 km</span></strong><div class="slider"></div></div>
+      </aside>
+      <main class="map-card">
+        <div class="map-title"><span>Cartographic View</span><span>OpenStreetMap + deck.gl</span></div>
+        <div class="map" aria-label="台灣地震地圖">
+          <span class="lat l1">25N</span><span class="lat l2">23N</span><span class="lat l3">21N</span>
+          <span class="lon o1">119E</span><span class="lon o2">121E</span><span class="lon o3">123E</span>
+          <div class="taiwan"></div>
+          <span class="shore-label sl1">宜蘭外海</span>
+          <span class="shore-label sl2">花蓮近海</span>
+          <div class="heat h1"></div>
+          <div class="heat h2"></div>
+          <div class="heat h3"></div>
+          <span class="point p1"></span>
+          <span class="point p2"></span>
+          <span class="point p3"></span>
+          <span class="point p4"></span>
+          <span class="point p5"></span>
+        </div>
+      </main>
+      <aside class="right">
+        <h2>熱區摘要</h2>
+        <article class="summary-card"><strong>花蓮近海 <span>4,182</span></strong><p>主要熱區集中於台灣東部，年份拉動時可觀察密度變化。</p></article>
+        <article class="summary-card"><strong>宜蘭外海 <span>2,970</span></strong><p>北東側點位密集，適合搭配震級下限篩選。</p></article>
+        <article class="summary-card"><strong>台東近海 <span>1,844</span></strong><p>南段活動量較低但仍有明顯群聚。</p></article>
+      </aside>
+    </section>
+    <section class="year-strip">
+      <strong>年份範圍</strong>
+      <div class="ticks">
+        <span class="tick"></span><span class="tick"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span><span class="tick active"></span>
+      </div>
+      <button>套用</button>
+    </section>
+  </div>
+</body>
+</html>

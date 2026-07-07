@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockup 4 - Seismic Control Room</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", "Noto Sans TC", Arial, sans-serif;
+      color: #f2f5f2;
+      --bg: #181b1a;
+      --panel: #232724;
+      --panel-2: #2e332f;
+      --line: #49514a;
+      --muted: #a9b3aa;
+      --green: #74b28f;
+      --amber: #e7b64b;
+      --red: #d95f4d;
+      --water: #263d40;
+      --land: #465f49;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+    }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 72px 320px 1fr 340px;
+      grid-template-rows: 64px 1fr 210px;
+    }
+    .rail {
+      grid-row: 1 / 4;
+      background: #111413;
+      border-right: 1px solid var(--line);
+      display: grid;
+      align-content: start;
+      justify-items: center;
+      gap: 14px;
+      padding-top: 16px;
+    }
+    .rail button {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #202421;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .rail button.active {
+      color: #121512;
+      background: var(--green);
+      border-color: var(--green);
+    }
+    header {
+      grid-column: 2 / 5;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 18px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--line);
+      background: #1d211f;
+    }
+    h1 {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: 0;
+    }
+    .live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(116,178,143,.15);
+    }
+    .ghost-button {
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #252a27;
+      color: #f2f5f2;
+      padding: 0 12px;
+      font-weight: 750;
+    }
+    aside,
+    .right,
+    .timeline {
+      background: var(--panel);
+    }
+    aside {
+      padding: 18px;
+      border-right: 1px solid var(--line);
+      overflow: auto;
+    }
+    .panel-title {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .metric {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 12px;
+    }
+    .metric strong {
+      display: block;
+      font-size: 26px;
+      line-height: 1;
+    }
+    .metric span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .field {
+      border-top: 1px solid var(--line);
+      padding: 16px 0;
+    }
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+      margin-bottom: 10px;
+    }
+    .track {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #3a413c 0 18%, var(--green) 18% 84%, #3a413c 84%);
+      position: relative;
+    }
+    .track::before,
+    .track::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #151816;
+      border: 2px solid var(--green);
+      transform: translate(-50%, -50%);
+    }
+    .track::before { left: 18%; }
+    .track::after { left: 84%; }
+    .switch {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0 11px;
+      margin-top: 9px;
+      color: #eef3ee;
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .switch i {
+      width: 34px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--green);
+      position: relative;
+    }
+    .switch i::after {
+      content: "";
+      position: absolute;
+      right: 3px;
+      top: 3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #121512;
+    }
+    .map {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        radial-gradient(circle at 50% 46%, rgba(116,178,143,.12), transparent 34%),
+        var(--water);
+      background-size: 42px 42px, 42px 42px, auto, auto;
+    }
+    .map::after {
+      content: "121.00E / 23.70N";
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .taiwan {
+      position: absolute;
+      left: 48%;
+      top: 7%;
+      width: 235px;
+      height: 650px;
+      background: linear-gradient(110deg, #354c3a, var(--land) 52%, #657b5f);
+      border: 1px solid rgba(210,230,212,.25);
+      border-radius: 48% 52% 45% 55% / 10% 18% 82% 90%;
+      transform: rotate(18deg);
+      box-shadow: 26px 16px 0 rgba(0,0,0,.17);
+    }
+    .fault {
+      position: absolute;
+      left: 55%;
+      top: 17%;
+      height: 520px;
+      border-left: 2px dashed rgba(231,182,75,.54);
+      transform: rotate(18deg);
+    }
+    .heat {
+      position: absolute;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: screen;
+      background: radial-gradient(circle, rgba(217,95,77,.88), rgba(231,182,75,.45) 35%, rgba(116,178,143,.18) 68%, transparent 72%);
+    }
+    .h-a { left: 54%; top: 29%; width: 190px; height: 190px; }
+    .h-b { left: 50%; top: 55%; width: 300px; height: 300px; }
+    .h-c { left: 59%; top: 78%; width: 160px; height: 160px; }
+    .point {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ffefe9;
+      border: 2px solid var(--red);
+      box-shadow: 0 0 0 4px rgba(217,95,77,.22);
+    }
+    .p1 { left: 53%; top: 28%; }
+    .p2 { left: 49%; top: 52%; }
+    .p3 { left: 56%; top: 58%; }
+    .p4 { left: 60%; top: 76%; }
+    .p5 { left: 47%; top: 66%; }
+    .right {
+      padding: 18px;
+      border-left: 1px solid var(--line);
+      overflow: auto;
+    }
+    .alert {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--amber);
+      border-radius: 7px;
+      padding: 13px;
+      background: var(--panel-2);
+      margin-bottom: 10px;
+    }
+    .alert strong {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .alert p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .timeline {
+      grid-column: 2 / 5;
+      border-top: 1px solid var(--line);
+      padding: 16px 18px;
+      overflow: hidden;
+    }
+    .bars {
+      display: grid;
+      grid-template-columns: repeat(30, 1fr);
+      align-items: end;
+      gap: 5px;
+      height: 118px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+    .bar {
+      min-height: 14px;
+      background: linear-gradient(180deg, var(--amber), var(--red));
+      border-radius: 4px 4px 0 0;
+      opacity: .88;
+    }
+    .scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="主要工具">
+      <button class="active" title="地圖">⌖</button>
+      <button title="篩選">≡</button>
+      <button title="圖層">◉</button>
+      <button title="匯出">⇩</button>
+    </nav>
+    <header>
+      <h1>台灣地震熱區探索器</h1>
+      <span class="live"><i class="dot"></i>資料載入 16,365 筆</span>
+      <button class="ghost-button">專注地圖</button>
+    </header>
+    <aside>
+      <p class="panel-title">Filters</p>
+      <div class="metric-grid">
+        <div class="metric"><strong>1995</strong><span>起始年</span></div>
+        <div class="metric"><strong>2025</strong><span>結束年</span></div>
+        <div class="metric"><strong>M 2.0</strong><span>最小規模</span></div>
+        <div class="metric"><strong>M 7.3</strong><span>最大規模</span></div>
+      </div>
+      <div class="field">
+        <label><span>年份範圍</span><b>1995 - 2025</b></label>
+        <div class="track"></div>
+      </div>
+      <div class="field">
+        <label><span>震級範圍</span><b>M 2.0 - 7.3</b></label>
+        <div class="track"></div>
+      </div>
+      <div class="field">
+        <label><span>圖層</span><b>2 active</b></label>
+        <div class="switch"><span>熱區密度</span><i></i></div>
+        <div class="switch"><span>地震點位</span><i></i></div>
+      </div>
+    </aside>
+    <main class="map" aria-label="台灣地震監控地圖">
+      <div class="taiwan"></div>
+      <div class="fault"></div>
+      <div class="heat h-a"></div>
+      <div class="heat h-b"></div>
+      <div class="heat h-c"></div>
+      <span class="point p1"></span>
+      <span class="point p2"></span>
+      <span class="point p3"></span>
+      <span class="point p4"></span>
+      <span class="point p5"></span>
+    </main>
+    <section class="right">
+      <p class="panel-title">Hot Areas</p>
+      <article class="alert"><strong>花蓮近海 <span>高</span></strong><p>熱區集中，近年仍維持高事件數。點選後顯示代表事件與震級分布。</p></article>
+      <article class="alert"><strong>宜蘭外海 <span>中高</span></strong><p>北東部活動密集，適合用年份篩選查看群聚變化。</p></article>
+      <article class="alert"><strong>台東近海 <span>中</span></strong><p>南段點位較分散，熱區可輔助判斷長期密度。</p></article>
+    </section>
+    <section class="timeline">
+      <p class="panel-title">Yearly Activity</p>
+      <div class="bars">
+        <span class="bar" style="height:38%"></span><span class="bar" style="height:42%"></span><span class="bar" style="height:35%"></span><span class="bar" style="height:46%"></span><span class="bar" style="height:64%"></span><span class="bar" style="height:40%"></span><span class="bar" style="height:33%"></span><span class="bar" style="height:58%"></span><span class="bar" style="height:44%"></span><span class="bar" style="height:49%"></span><span class="bar" style="height:36%"></span><span class="bar" style="height:41%"></span><span class="bar" style="height:55%"></span><span class="bar" style="height:32%"></span><span class="bar" style="height:47%"></span><span class="bar" style="height:51%"></span><span class="bar" style="height:62%"></span><span class="bar" style="height:43%"></span><span class="bar" style="height:39%"></span><span class="bar" style="height:53%"></span><span class="bar" style="height:68%"></span><span class="bar" style="height:73%"></span><span class="bar" style="height:57%"></span><span class="bar" style="height:48%"></span><span class="bar" style="height:82%"></span><span class="bar" style="height:59%"></span><span class="bar" style="height:46%"></span><span class="bar" style="height:78%"></span><span class="bar" style="height:69%"></span><span class="bar" style="height:52%"></span>
+      </div>
+      <div class="scale"><span>1995</span><span>2005</span><span>2015</span><span>2025</span></div>
+    </section>
+  </div>
+</body>
+</html>

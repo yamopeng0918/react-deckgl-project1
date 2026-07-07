@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockup 2 - 地圖優先浮動介面</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", "Noto Sans TC", Arial, sans-serif;
+      color: #172026;
+      --panel: rgba(255,255,255,.92);
+      --line: rgba(32,42,50,.16);
+      --muted: #5f6d78;
+      --water: #cfdfe2;
+      --land: #c8d8c2;
+      --orange: #d85a2e;
+      --red: #a92728;
+      --blue: #1d6d83;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background: var(--water);
+    }
+    .map {
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(30deg, rgba(255,255,255,.22) 12%, transparent 12% 88%, rgba(255,255,255,.22) 88%),
+        linear-gradient(150deg, rgba(37,69,84,.1), transparent 42%),
+        var(--water);
+    }
+    .contour {
+      position: absolute;
+      inset: -12%;
+      opacity: .32;
+      background:
+        repeating-radial-gradient(ellipse at 58% 49%, transparent 0 46px, rgba(48,87,101,.18) 47px 48px);
+    }
+    .taiwan {
+      position: absolute;
+      left: 47%;
+      top: 8%;
+      width: 230px;
+      height: 660px;
+      background: linear-gradient(110deg, #b7cbb2, var(--land) 48%, #e4ecd8);
+      border: 1px solid rgba(84,115,91,.38);
+      border-radius: 47% 53% 43% 57% / 10% 18% 82% 90%;
+      transform: rotate(18deg);
+      box-shadow: 30px 16px 0 rgba(67,94,75,.12);
+    }
+    .fault {
+      position: absolute;
+      left: 54.5%;
+      top: 21%;
+      height: 470px;
+      border-left: 2px dashed rgba(94,89,68,.38);
+      transform: rotate(17deg);
+    }
+    .heat {
+      position: absolute;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: multiply;
+      background: radial-gradient(circle, rgba(155,24,31,.76), rgba(216,90,46,.44) 35%, rgba(248,188,86,.18) 67%, transparent 70%);
+    }
+    .h1 { left: 55%; top: 28%; width: 190px; height: 190px; }
+    .h2 { left: 50%; top: 56%; width: 290px; height: 290px; }
+    .h3 { left: 58%; top: 76%; width: 160px; height: 160px; }
+    .quake {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #641922;
+      border: 2px solid white;
+      box-shadow: 0 4px 9px rgba(0,0,0,.28);
+    }
+    .q1 { left: 51%; top: 18%; }
+    .q2 { left: 56%; top: 31%; }
+    .q3 { left: 53%; top: 45%; }
+    .q4 { left: 47%; top: 59%; }
+    .q5 { left: 58%; top: 70%; }
+    .q6 { left: 52%; top: 83%; }
+    .top {
+      position: fixed;
+      left: 24px;
+      right: 24px;
+      top: 20px;
+      height: 64px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
+    .brand,
+    .tools,
+    .drawer,
+    .timeline,
+    .zoom {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(25,39,49,.16);
+      backdrop-filter: blur(12px);
+    }
+    .brand {
+      height: 64px;
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0;
+      letter-spacing: 0;
+    }
+    .brand span {
+      color: var(--muted);
+      font-size: 13px;
+      border-left: 1px solid var(--line);
+      padding-left: 16px;
+    }
+    .tools {
+      border-radius: 8px;
+      display: flex;
+      gap: 6px;
+      padding: 8px;
+    }
+    button {
+      border: 1px solid transparent;
+      background: transparent;
+      min-width: 44px;
+      height: 44px;
+      border-radius: 7px;
+      font-weight: 750;
+      color: #26323a;
+    }
+    button.active {
+      color: white;
+      background: var(--blue);
+    }
+    .drawer {
+      position: fixed;
+      top: 108px;
+      right: 24px;
+      width: 330px;
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .drawer h2 {
+      font-size: 16px;
+      margin: 0 0 14px;
+    }
+    .metric {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      padding: 11px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .metric b { font-size: 20px; }
+    .metric span { color: var(--muted); }
+    .filter {
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      margin-top: 6px;
+    }
+    .filter label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 9px;
+    }
+    .track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #dfe5e8 0 18%, var(--blue) 18% 78%, #dfe5e8 78%);
+    }
+    .timeline {
+      position: fixed;
+      left: 24px;
+      right: 380px;
+      bottom: 24px;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .bars {
+      height: 72px;
+      display: grid;
+      grid-template-columns: repeat(31, 1fr);
+      align-items: end;
+      gap: 4px;
+    }
+    .bars i {
+      display: block;
+      min-height: 10px;
+      background: #6f8e9a;
+      border-radius: 3px 3px 0 0;
+    }
+    .zoom {
+      position: fixed;
+      left: 24px;
+      top: 108px;
+      border-radius: 8px;
+      padding: 6px;
+      display: grid;
+      gap: 4px;
+    }
+    .pin {
+      position: absolute;
+      left: 43%;
+      top: 43%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #172026;
+      color: white;
+      font-size: 12px;
+      box-shadow: 0 12px 26px rgba(0,0,0,.24);
+    }
+    .pin::after {
+      content: "";
+      position: absolute;
+      left: 18px;
+      bottom: -7px;
+      border: 8px solid transparent;
+      border-top-color: #172026;
+      border-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <section class="map" aria-label="地圖優先地震熱區示意">
+    <div class="contour"></div>
+    <div class="taiwan"></div>
+    <div class="fault"></div>
+    <div class="heat h1"></div>
+    <div class="heat h2"></div>
+    <div class="heat h3"></div>
+    <div class="quake q1"></div>
+    <div class="quake q2"></div>
+    <div class="quake q3"></div>
+    <div class="quake q4"></div>
+    <div class="quake q5"></div>
+    <div class="quake q6"></div>
+    <div class="pin">M 5.2 / 15.1 km<br>嘉義縣梅山鄉</div>
+  </section>
+
+  <header class="top">
+    <div class="brand">
+      <h1>台灣地震熱區探索器</h1>
+      <span>地圖優先版：工具浮在地圖上，適合快速拖拉縮放與點選查看。</span>
+    </div>
+    <nav class="tools" aria-label="圖層工具">
+      <button class="active">熱</button>
+      <button>點</button>
+      <button>框</button>
+      <button>↺</button>
+    </nav>
+  </header>
+
+  <div class="zoom" aria-label="地圖縮放控制">
+    <button>+</button>
+    <button>-</button>
+  </div>
+
+  <aside class="drawer">
+    <h2>目前檢視</h2>
+    <div class="metric"><span>篩選筆數</span><b>12,804</b></div>
+    <div class="metric"><span>年份範圍</span><b>1999-2025</b></div>
+    <div class="metric"><span>規模範圍</span><b>M 3.0+</b></div>
+    <div class="filter">
+      <label>年份 <span>1999 - 2025</span></label>
+      <div class="track"></div>
+    </div>
+    <div class="filter">
+      <label>規模 <span>M 3.0 - 7.3</span></label>
+      <div class="track"></div>
+    </div>
+  </aside>
+
+  <footer class="timeline">
+    <div class="bars" aria-label="年度地震數量直方圖">
+      <i style="height:18px"></i><i style="height:14px"></i><i style="height:20px"></i><i style="height:17px"></i>
+      <i style="height:35px"></i><i style="height:46px"></i><i style="height:39px"></i><i style="height:42px"></i>
+      <i style="height:37px"></i><i style="height:31px"></i><i style="height:48px"></i><i style="height:40px"></i>
+      <i style="height:44px"></i><i style="height:52px"></i><i style="height:58px"></i><i style="height:49px"></i>
+      <i style="height:55px"></i><i style="height:52px"></i><i style="height:47px"></i><i style="height:63px"></i>
+      <i style="height:46px"></i><i style="height:72px"></i><i style="height:43px"></i><i style="height:38px"></i>
+      <i style="height:50px"></i><i style="height:64px"></i><i style="height:44px"></i><i style="height:40px"></i>
+      <i style="height:54px"></i><i style="height:68px"></i><i style="height:34px"></i>
+    </div>
+  </footer>
+</body>
+</html>
