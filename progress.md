@@ -570,3 +570,100 @@ Completed so far:
   - `npm.cmd test -- --run` passed: 7 test files, 22 tests.
   - `npm.cmd run build` passed. The existing large chunk warning remains expected because deck.gl and MapLibre are large dependencies.
   - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
+
+## 2026-07-08 Heat Area Click Summary
+
+- Added design and implementation plan notes for heat-area click summaries:
+  - `docs/superpowers/specs/2026-07-08-heat-area-click-summary-design.md`
+  - `docs/superpowers/plans/2026-07-08-heat-area-click-summary.md`
+- Implemented heat-area click summaries in `src/App.jsx`.
+- The heatmap layer is now pickable. Clicking a heat area uses the clicked map coordinate to summarize nearby currently filtered earthquake records.
+- Heat-area summaries include:
+  - nearby event count.
+  - average magnitude.
+  - max magnitude.
+  - average depth.
+  - year range.
+  - representative locations.
+- Existing table-row and earthquake-point selection still shows the individual selected event summary and clears the heat-area summary.
+- Added a regression test in `src/App.test.jsx` for heatmap click behavior using mocked `HeatmapLayer` props.
+- Updated `todo.md` so the optional heat-area click summary task is complete.
+- Verification:
+  - First ran `npm.cmd test -- --run src/App.test.jsx` and confirmed the new heat-area summary test failed because `HeatmapLayer.pickable` was undefined.
+  - `npm.cmd test -- --run src/App.test.jsx` passed: 7 tests.
+  - `npm.cmd test -- --run` passed: 7 test files, 23 tests.
+  - `npm.cmd run build` passed. The existing deck.gl / MapLibre large chunk warning remains expected.
+  - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
+- Remaining todo item:
+  - Manual browser check: verify heatmap and point layers remain visually readable together.
+
+## 2026-07-08 Heat Area Summary Browser Click Fix
+
+- Investigated the user report that the heat-area summary was not visible on the actual webpage.
+- Root cause found:
+  - The first implementation attached the summary click handler to `HeatmapLayer`.
+  - The unit test could call that layer prop directly, but real browser interaction cannot reliably depend on the aggregated heatmap layer producing a clickable object.
+- Updated `MapPanel` so `DeckGL` receives a map-level `onClick` handler.
+- The map-level click handler now uses the clicked coordinate to build a heat-area summary when the click is not on an individual earthquake point.
+- Kept point and table selection behavior unchanged: selecting a real earthquake record still clears any heat-area summary and shows the event details.
+- Added a regression test in `src/App.test.jsx` proving direct `DeckGL` map click coordinates show the heat-area summary.
+- Verification:
+  - First ran `npm.cmd test -- --run src/App.test.jsx` and confirmed the new direct-map-click test failed because `DeckGL.onClick` was undefined.
+  - `npm.cmd test -- --run src/App.test.jsx` passed: 8 tests.
+  - `npm.cmd test -- --run` passed: 7 test files, 24 tests.
+  - `npm.cmd run build` passed. The existing deck.gl / MapLibre large chunk warning remains expected.
+  - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
+
+## 2026-07-08 Yearly Event Chart
+
+- Updated the lower activity chart from monthly aggregation to yearly aggregation.
+- Renamed the chart panel from `月別事件量` to `年份事件量`.
+- Replaced `MonthlyBars` / `getMonthlyCounts` with `YearlyBars` / `getYearlyCounts` in `src/App.jsx`.
+- The chart now summarizes the currently filtered records by `year`, so year range and magnitude range filters both affect it.
+- The chart axis shows the first, middle, and last visible years to avoid crowding the full 1995-2026 range.
+- Updated the bar grid CSS in `src/styles.css` so the number of chart columns follows the number of yearly buckets instead of being fixed at 12 months.
+- Updated `src/App.test.jsx` to expect the yearly chart title, accessible chart label, and year axis labels.
+- Verification:
+  - First ran `npm.cmd test -- --run src/App.test.jsx` and confirmed the new yearly-chart expectation failed while the app still rendered `月別事件量`.
+  - `npm.cmd test -- --run src/App.test.jsx` passed: 8 tests.
+  - `npm.cmd test -- --run` passed: 7 test files, 24 tests.
+  - `npm.cmd run build` passed. The existing deck.gl / MapLibre large chunk warning remains expected.
+  - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
+
+## 2026-07-08 Yearly Chart Zero-Count Visibility Fix
+
+- Investigated the report that 0-record years and 1-record years were visually indistinguishable in the yearly event chart.
+- Root cause found:
+  - `YearlyBars` used `Math.max(12, ...)` for every bar, including zero-count years.
+  - `.bar` also had `min-height: 12px`, so zero-count years received the same visible height as low non-zero years.
+- Updated `YearlyBars` so zero-count years render as `2px` baseline bars with an `empty-bar` class.
+- Updated `.bar` CSS to remove the universal 12px minimum height.
+- Added `.bar.empty-bar` styling with a muted baseline color and lower opacity.
+- Added a regression test in `src/App.test.jsx` proving a zero-count year bar differs from a one-count year bar.
+- Verification:
+  - First ran `npm.cmd test -- --run src/App.test.jsx` and confirmed the new zero-count yearly bar test failed because the zero-count bar only had class `bar`.
+  - `npm.cmd test -- --run src/App.test.jsx` passed: 9 tests.
+  - `npm.cmd test -- --run` passed: 7 test files, 25 tests.
+  - `npm.cmd run build` passed. The existing deck.gl / MapLibre large chunk warning remains expected.
+  - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
+
+## 2026-07-08 Session Close-Out
+
+- Completed the current requested UI cleanup pass.
+- Current MVP status:
+  - Data processing pipeline is implemented and rerunnable.
+  - Frontend loads the generated earthquake dataset.
+  - Heatmap, point layer, year range filter, magnitude range filter, map pan/zoom, point summary, and heat-area summary are implemented.
+  - The activity chart now shows yearly event counts instead of monthly event counts.
+  - Zero-count years are visually distinct from one-count years in the yearly chart.
+  - Dark theme, focused map mode, responsive layout, stable selected-record identity, and table performance limits remain covered by tests.
+- Current tracked todo status:
+  - All data, frontend, and documentation tasks are complete.
+  - The only remaining unchecked item is manual browser verification that heatmap and point layers remain visually readable together.
+- Final verification for this close-out:
+  - `npm.cmd test -- --run` passed: 7 test files, 25 tests.
+  - `npm.cmd run build` passed. The existing deck.gl / MapLibre large chunk warning remains expected.
+  - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
+- Known remaining limitations:
+  - Base map tiles still depend on OpenStreetMap network access.
+  - The production build still reports large chunk warnings because deck.gl and MapLibre are large dependencies; this remains acceptable for the local MVP.

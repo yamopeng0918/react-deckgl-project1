@@ -33,7 +33,7 @@
 - [x] Support map pan and zoom.
 - [x] Add basic legend and visible filter state.
 - [x] Add click summary for earthquake points if time allows.
-- [ ] Add click summary for heat areas if time allows.
+- [x] Add click summary for heat areas if time allows.
 
 ## Verification
 

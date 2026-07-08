@@ -1,10 +1,12 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { HeatmapLayer } from "@deck.gl/aggregation-layers";
+import DeckGL from "@deck.gl/react";
 
 import App from "./App.jsx";
 
 vi.mock("@deck.gl/react", () => ({
-  default: ({ children }) => <div data-testid="deck-map">{children}</div>,
+  default: vi.fn(({ children }) => <div data-testid="deck-map">{children}</div>),
 }));
 
 vi.mock("@deck.gl/layers", () => ({
@@ -98,8 +100,25 @@ describe("App", () => {
     expect(screen.getByText("地震事件資料表")).toBeInTheDocument();
     expect(screen.getByText("同步地圖")).toBeInTheDocument();
     expect(screen.getByText("選取事件摘要")).toBeInTheDocument();
-    expect(screen.getByText("月別事件量")).toBeInTheDocument();
+    expect(screen.getByText("年份事件量")).toBeInTheDocument();
+    expect(screen.getByLabelText("年份事件量圖")).toBeInTheDocument();
+    expect(screen.getByText("1995")).toBeInTheDocument();
+    expect(screen.getByText("2025")).toBeInTheDocument();
     expect(screen.getByTestId("deck-map")).toBeInTheDocument();
+  });
+
+  it("renders zero-count yearly bars differently from one-count yearly bars", async () => {
+    render(<App />);
+    await screen.findByText("Yilan offshore");
+
+    const chart = screen.getByLabelText("年份事件量圖");
+    const zeroCountBar = chart.querySelector('[title^="1996: 0"]');
+    const oneCountBar = chart.querySelector('[title^="1995: 1"]');
+
+    expect(zeroCountBar).toHaveClass("empty-bar");
+    expect(zeroCountBar).toHaveStyle({ height: "2px" });
+    expect(oneCountBar).not.toHaveClass("empty-bar");
+    expect(oneCountBar).not.toHaveStyle({ height: "2px" });
   });
 
   it("limits visible table rows for large datasets to keep initial load responsive", async () => {
@@ -135,6 +154,37 @@ describe("App", () => {
     expect(screen.getByText("ID 514")).toBeInTheDocument();
     expect(screen.getAllByText("M 5.2").length).toBeGreaterThan(0);
     expect(screen.getAllByText("15.1 km").length).toBeGreaterThan(0);
+  });
+
+  it("shows a heat-area summary from nearby filtered events when the heatmap is clicked", async () => {
+    render(<App />);
+    await screen.findByText("Yilan offshore");
+
+    const heatmapProps = HeatmapLayer.mock.calls.at(-1)[0];
+    expect(heatmapProps.pickable).toBe(true);
+
+    heatmapProps.onClick({ coordinate: [121.69, 24] });
+
+    expect(await screen.findByText("Heat area")).toBeInTheDocument();
+    expect(screen.getByText("Nearby events")).toBeInTheDocument();
+    expect(screen.getByText("2", { selector: ".fact strong" })).toBeInTheDocument();
+    expect(screen.getByText("M 4.3", { selector: ".fact strong" })).toBeInTheDocument();
+    expect(screen.getByText("M 4.5", { selector: ".fact strong" })).toBeInTheDocument();
+    expect(screen.getByText("1995 - 2025", { selector: ".fact strong" })).toBeInTheDocument();
+  });
+
+  it("shows a heat-area summary from a direct map click coordinate", async () => {
+    render(<App />);
+    await screen.findByText("Yilan offshore");
+
+    const deckProps = DeckGL.mock.calls.at(-1)[0];
+    expect(deckProps.onClick).toEqual(expect.any(Function));
+
+    deckProps.onClick({ coordinate: [121.69, 24] });
+
+    expect(await screen.findByText("Heat area")).toBeInTheDocument();
+    expect(screen.getByText("Nearby events")).toBeInTheDocument();
+    expect(screen.getByText("2", { selector: ".fact strong" })).toBeInTheDocument();
   });
 
   it("uses a stable record identity when duplicate source ids exist", async () => {

@@ -36,6 +36,8 @@ const MAP_STYLE = {
 
 const TABLE_ROW_LIMIT = 100;
 const THEME_STORAGE_KEY = "earthquake-theme";
+const HEAT_AREA_RADIUS_DEGREES = 1;
+const HEAT_AREA_FALLBACK_LIMIT = 8;
 
 function getInitialTheme() {
   if (typeof localStorage === "undefined") return "light";
@@ -50,7 +52,6 @@ function prepareRecords(data) {
   return data
     .map((record) => ({
       ...record,
-      event_month: Number(record.event_time.slice(5, 7)),
       record_key: `${record.source_file}::${record.id}::${record.event_time}`,
     }))
     .sort((a, b) => b.event_time.localeCompare(a.event_time));
@@ -65,6 +66,46 @@ function defaultFilters(stats) {
   };
 }
 
+function formatMagnitude(value) {
+  return `M ${Number(value.toFixed(1))}`;
+}
+
+function buildHeatAreaSummary(records, coordinate) {
+  if (!coordinate || records.length === 0) return null;
+  const [longitude, latitude] = coordinate;
+  const rankedRecords = records
+    .map((record) => ({
+      record,
+      distance: Math.hypot(record.longitude - longitude, record.latitude - latitude),
+    }))
+    .sort((a, b) => a.distance - b.distance);
+  const nearbyRecords = rankedRecords
+    .filter(({ distance }) => distance <= HEAT_AREA_RADIUS_DEGREES)
+    .map(({ record }) => record);
+  const summaryRecords =
+    nearbyRecords.length > 0
+      ? nearbyRecords
+      : rankedRecords.slice(0, HEAT_AREA_FALLBACK_LIMIT).map(({ record }) => record);
+
+  if (summaryRecords.length === 0) return null;
+
+  const totalMagnitude = summaryRecords.reduce((total, record) => total + record.magnitude, 0);
+  const totalDepth = summaryRecords.reduce((total, record) => total + record.depth_km, 0);
+  const years = summaryRecords.map((record) => record.year);
+  const locations = [...new Set(summaryRecords.map((record) => record.location))].slice(0, 3);
+
+  return {
+    type: "heat-area",
+    count: summaryRecords.length,
+    averageMagnitude: totalMagnitude / summaryRecords.length,
+    maxMagnitude: Math.max(...summaryRecords.map((record) => record.magnitude)),
+    averageDepth: totalDepth / summaryRecords.length,
+    yearMin: Math.min(...years),
+    yearMax: Math.max(...years),
+    locations,
+  };
+}
+
 export default function App() {
   const [records, setRecords] = useState([]);
   const [loadState, setLoadState] = useState("loading");
@@ -72,6 +113,7 @@ export default function App() {
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [showPoints, setShowPoints] = useState(true);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [selectedSummary, setSelectedSummary] = useState(null);
   const [mapFocus, setMapFocus] = useState(false);
   const [theme, setTheme] = useState(getInitialTheme);
 
@@ -115,7 +157,7 @@ export default function App() {
     filteredRecords.find((record) => getRecordKey(record) === selectedKey) ??
     filteredRecords[0] ??
     null;
-  const monthlyCounts = useMemo(() => getMonthlyCounts(filteredRecords), [filteredRecords]);
+  const yearlyCounts = useMemo(() => getYearlyCounts(filteredRecords), [filteredRecords]);
 
   const layers = useMemo(() => {
     const heatmap = new HeatmapLayer({
@@ -127,6 +169,11 @@ export default function App() {
       intensity: 1.15,
       threshold: 0.03,
       visible: showHeatmap,
+      pickable: true,
+      onClick: ({ coordinate }) => {
+        const summary = buildHeatAreaSummary(filteredRecords, coordinate);
+        if (summary) setSelectedSummary(summary);
+      },
     });
 
     const points = new ScatterplotLayer({
@@ -143,12 +190,20 @@ export default function App() {
       pickable: true,
       visible: mapFocus || showPoints,
       onClick: ({ object }) => {
-        if (object) setSelectedRecord(object);
+        if (object) {
+          setSelectedRecord(object);
+          setSelectedSummary(null);
+        }
       },
     });
 
     return [heatmap, points];
   }, [filteredRecords, mapFocus, showHeatmap, showPoints]);
+
+  function selectHeatArea(coordinate) {
+    const summary = buildHeatAreaSummary(filteredRecords, coordinate);
+    if (summary) setSelectedSummary(summary);
+  }
 
   function updateYearRange(name, value) {
     setFilters((current) => {
@@ -190,6 +245,11 @@ export default function App() {
     });
   }
 
+  function selectRecord(record) {
+    setSelectedRecord(record);
+    setSelectedSummary(null);
+  }
+
   if (loadState === "loading") {
     return <div className="boot">資料載入中</div>;
   }
@@ -209,7 +269,7 @@ export default function App() {
           onToggleTheme={toggleTheme}
         />
         <section className="map-panel focus-map-panel">
-          <MapPanel layers={layers} selected={selected} />
+          <MapPanel layers={layers} selected={selected} onMapClick={selectHeatArea} />
         </section>
       </div>
     );
@@ -283,25 +343,29 @@ export default function App() {
             <EventTable
               records={visibleTableRecords}
               selectedKey={selected ? getRecordKey(selected) : null}
-              onSelect={setSelectedRecord}
+              onSelect={selectRecord}
             />
           </section>
 
           <section className="chart-panel">
-            <PanelHead title="月別事件量" note="目前篩選結果" />
-            <MonthlyBars counts={monthlyCounts} />
+            <PanelHead title="年份事件量" note="目前篩選結果" />
+            <YearlyBars counts={yearlyCounts} />
           </section>
         </section>
 
         <section className="right-stack">
           <section className="map-panel">
             <PanelHead title="同步地圖" note="熱區與選取事件" />
-            <MapPanel layers={layers} selected={selected} />
+            <MapPanel layers={layers} selected={selected} onMapClick={selectHeatArea} />
           </section>
 
           <section className="detail-panel">
             <PanelHead title="選取事件摘要" note={selected ? `ID ${selected.id}` : "尚未選取"} />
-            {selected ? <SelectedDetails record={selected} /> : null}
+            {selectedSummary ? (
+              <HeatAreaDetails summary={selectedSummary} />
+            ) : selected ? (
+              <SelectedDetails record={selected} />
+            ) : null}
           </section>
         </section>
       </main>
@@ -453,13 +517,19 @@ function PanelHead({ title, note }) {
   );
 }
 
-function MapPanel({ layers, selected }) {
+function MapPanel({ layers, selected, onMapClick }) {
+  function handleMapClick(info) {
+    if (info?.object?.event_time) return;
+    if (info?.coordinate) onMapClick(info.coordinate);
+  }
+
   return (
     <div className="map-canvas" aria-label="台灣地震熱區地圖">
       <DeckGL
         controller
         initialViewState={INITIAL_VIEW_STATE}
         layers={layers}
+        onClick={handleMapClick}
         getTooltip={({ object }) =>
           object
             ? {
@@ -518,25 +588,32 @@ function EventTable({ records, selectedKey, onSelect }) {
   );
 }
 
-function MonthlyBars({ counts }) {
-  const maxCount = Math.max(...counts, 1);
+function YearlyBars({ counts }) {
+  const maxCount = Math.max(...counts.map(({ count }) => count), 1);
+  const firstYear = counts[0]?.year ?? "";
+  const middleYear = counts[Math.floor((counts.length - 1) / 2)]?.year ?? "";
+  const lastYear = counts.at(-1)?.year ?? "";
 
   return (
     <>
-      <div className="bars" aria-label="月別事件量圖">
-        {counts.map((count, index) => (
+      <div
+        className="bars"
+        aria-label="年份事件量圖"
+        style={{ "--bar-count": counts.length }}
+      >
+        {counts.map(({ year, count }) => (
           <span
-            className="bar"
-            key={index}
-            style={{ height: `${Math.max(12, (count / maxCount) * 100)}%` }}
-            title={`${index + 1} 月: ${count} 筆`}
+            className={`bar${count === 0 ? " empty-bar" : ""}`}
+            key={year}
+            style={{ height: count === 0 ? "2px" : `${Math.max(12, (count / maxCount) * 100)}%` }}
+            title={`${year}: ${count} 筆`}
           />
         ))}
       </div>
       <div className="axis">
-        <span>1月</span>
-        <span>6月</span>
-        <span>12月</span>
+        <span>{firstYear}</span>
+        <span>{middleYear}</span>
+        <span>{lastYear}</span>
       </div>
     </>
   );
@@ -573,11 +650,58 @@ function SelectedDetails({ record }) {
   );
 }
 
-function getMonthlyCounts(records) {
-  const counts = Array.from({ length: 12 }, () => 0);
+function HeatAreaDetails({ summary }) {
+  return (
+    <div className="detail-body">
+      <div className="fact">
+        <span>Heat area</span>
+        <strong>Summary</strong>
+      </div>
+      <div className="fact">
+        <span>Nearby events</span>
+        <strong>{summary.count}</strong>
+      </div>
+      <div className="fact">
+        <span>Average magnitude</span>
+        <strong>{formatMagnitude(summary.averageMagnitude)}</strong>
+      </div>
+      <div className="fact">
+        <span>Max magnitude</span>
+        <strong>{formatMagnitude(summary.maxMagnitude)}</strong>
+      </div>
+      <div className="fact">
+        <span>Average depth</span>
+        <strong>{summary.averageDepth.toFixed(1)} km</strong>
+      </div>
+      <div className="fact">
+        <span>Years</span>
+        <strong>
+          {summary.yearMin} - {summary.yearMax}
+        </strong>
+      </div>
+      <div className="fact wide">
+        <span>Representative locations</span>
+        <strong>{summary.locations.join(" / ")}</strong>
+      </div>
+    </div>
+  );
+}
+
+function getYearlyCounts(records) {
+  if (records.length === 0) return [];
+  const years = records.map((record) => record.year);
+  const minYear = Math.min(...years);
+  const maxYear = Math.max(...years);
+  const countsByYear = new Map();
   records.forEach((record) => {
-    const month = record.event_month ?? Number(record.event_time.slice(5, 7));
-    if (month >= 1 && month <= 12) counts[month - 1] += 1;
+    countsByYear.set(record.year, (countsByYear.get(record.year) ?? 0) + 1);
   });
-  return counts;
+
+  return Array.from({ length: maxYear - minYear + 1 }, (_, index) => {
+    const year = minYear + index;
+    return {
+      year,
+      count: countsByYear.get(year) ?? 0,
+    };
+  });
 }
