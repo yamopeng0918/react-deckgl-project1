@@ -8,7 +8,7 @@ Workspace path: `C:\Users\yamopeng\OneDrive\桌面\taiwan-earthquake-visualizati
 
 ## Current Status
 
-The local MVP is implemented and documented. Remaining work is limited to optional heat-area click summaries and manual visual inspection of layer readability.
+The local MVP is implemented, documented, verified, and also recorded as publicly deployed on Vercel. The previous optional heat-area click summary and manual layer-readability verification items are complete.
 
 Completed so far:
 
@@ -667,3 +667,242 @@ Completed so far:
 - Known remaining limitations:
   - Base map tiles still depend on OpenStreetMap network access.
   - The production build still reports large chunk warnings because deck.gl and MapLibre are large dependencies; this remains acceptable for the local MVP.
+
+## 2026-07-09 Public Deployment Sync
+
+- User confirmed the project has been publicly deployed to Vercel:
+  - `https://react-deckgl-project1-kappa.vercel.app/`
+- Verified the public deployment URL is reachable with HTTP 200.
+- Updated `README.md` with the public URL and current deployed MVP status.
+- Updated `todo.md` to mark public deployment reachability verification complete.
+- Current status: project is no longer only a local MVP; it is also available as a public Vercel deployment.
+
+## 2026-07-09 HyperFrames Install
+
+- Installed HeyGen HyperFrames CLI as a project dev dependency:
+  - `hyperframes@0.7.45`
+- Verified the installed CLI with:
+  - `npx.cmd hyperframes --version`
+- Current Node.js version is compatible with HyperFrames requirements:
+  - `v24.18.0`
+- Configured the local HyperFrames video environment:
+  - Downloaded HyperFrames-managed Chrome Headless Shell with `npx.cmd hyperframes browser ensure`.
+  - Added project-local FFmpeg / FFprobe under `tools/ffmpeg/bin/`.
+  - Added npm scripts `hf:doctor`, `hf:preview`, and `hf:render`.
+  - The npm scripts set `HYPERFRAMES_FFMPEG_PATH` and `HYPERFRAMES_FFPROBE_PATH` so no system PATH edit is required.
+- Verified `npm.cmd run hf:doctor` finds:
+  - `hyperframes@0.7.45`
+  - Node.js `v24.18.0`
+  - FFmpeg `8.1.2`
+  - FFprobe `8.1.2`
+  - Chrome Headless Shell
+- Docker, whisper-cpp, Kokoro TTS, and MusicGen remain optional and are not installed.
+
+## 2026-07-09 Closing Report HyperFrames Preview
+
+- Added design spec:
+  - `docs/superpowers/specs/2026-07-09-closing-report-hyperframes-design.md`
+- Added implementation plan:
+  - `docs/superpowers/plans/2026-07-09-closing-report-hyperframes.md`
+- Created first HyperFrames preview composition:
+  - `hyperframes/closing-report/index.html`
+- The composition follows the approved direction:
+  - 成果簡報型 plus 學習歷程型.
+  - Six scenes: cover, project goal, data outcome, build process, feature outcome, completion summary.
+- Added README commands for previewing, linting, and snapshotting the closing-report composition.
+- Verification:
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `npx.cmd hyperframes snapshot hyperframes\closing-report --frames 6 --describe false` generated six storyboard frames and a contact sheet under `hyperframes/closing-report/snapshots/`.
+- Note: snapshot output reported a fontconfig writable-cache warning, but the command exited successfully and produced the expected image files.
+- Preview server note:
+  - The HyperFrames preview server could start briefly, but it did not remain reachable for the user at `http://127.0.0.1:3002/`.
+  - Rendered a reviewable MP4 fallback instead:
+    - `hyperframes/closing-report/closing-report-preview.mp4`
+  - Render verification:
+    - HyperFrames render completed successfully.
+    - Output is 1920x1080, 30 fps, 45.0 seconds.
+
+## 2026-07-09 Closing Report HyperFrames Full Version
+
+- Expanded the closing-report HyperFrames composition from a short direction preview into a fuller report-style version:
+  - Duration: 82 seconds.
+  - Scenes: 12.
+  - Added sections for problem and goal, MVP scope, detailed data pipeline, UI experience, testing and verification, public deployment, limitations, and future extensions.
+- Added `tests/hyperframesClosingReport.test.js` to lock the required report structure and key facts.
+- TDD verification:
+  - First ran `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` and confirmed it failed against the shorter 6-scene version.
+  - Updated `hyperframes/closing-report/index.html` to satisfy the complete-version requirements.
+  - Re-ran `npm.cmd test -- --run tests/hyperframesClosingReport.test.js`; it passed.
+- HyperFrames verification:
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `npx.cmd hyperframes snapshot hyperframes\closing-report --frames 12 --describe false` generated two contact sheets for visual review.
+- Rendered the complete MP4:
+  - `hyperframes/closing-report/closing-report-full.mp4`
+  - Verified with FFprobe: 1920x1080, 30 fps, 82.0 seconds.
+
+## 2026-07-09 Closing Report Transitions
+
+- Added low-key report-style transitions to the full HyperFrames closing-report composition:
+  - scene fade in/out.
+  - slight upward entrance motion.
+  - staggered reveal for stat cards, flow steps, feature cards, verification cards, and limitation cards.
+- Added local GSAP dependency and copied the browser bundle into:
+  - `hyperframes/closing-report/vendor/gsap.min.js`
+- Updated `tests/hyperframesClosingReport.test.js` to require:
+  - GSAP timeline registration.
+  - scene motion markers.
+  - card-group stagger markers.
+- TDD verification:
+  - First ran `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` and confirmed the new transition test failed before implementation.
+  - After implementation, the test passed: 2 tests.
+- HyperFrames verification:
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `npx.cmd hyperframes snapshot hyperframes\closing-report --frames 12 --describe false` completed.
+- Rendered transition version:
+  - `hyperframes/closing-report/closing-report-full-transitions.mp4`
+  - Verified with FFprobe: 1920x1080, 30 fps, 82.0 seconds.
+
+## 2026-07-09 Closing Report Transition Visibility Fix
+
+- Fixed a blank-output issue after adding GSAP transitions.
+- Root cause:
+  - Each scene wrapper was set to hidden before its timeline start.
+  - The inner `.scene` content faded in, but the parent wrapper stayed hidden.
+- Fix:
+  - The active scene wrapper is now explicitly set visible at scene start.
+- Added a regression check in `tests/hyperframesClosingReport.test.js` so the scene wrapper visibility reset is required.
+- Verification:
+  - `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` passed.
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `npx.cmd hyperframes snapshot hyperframes\closing-report --at 1,8,22,45,80 --describe false` generated visible review frames.
+  - Rendered corrected transition version:
+    - `hyperframes/closing-report/closing-report-full-transitions-fixed.mp4`
+    - Verified with FFprobe: 1920x1080, 30 fps, 82.0 seconds.
+
+## 2026-07-11 Final Close-Out
+
+- Closed out the current project/reporting pass.
+- Current deliverables:
+  - React + deck.gl Taiwan earthquake MVP remains implemented.
+  - Public deployment remains recorded as:
+    - `https://react-deckgl-project1-kappa.vercel.app/`
+  - HyperFrames closing-report composition is available at:
+    - `hyperframes/closing-report/index.html`
+  - Corrected transition MP4 is available at:
+    - `hyperframes/closing-report/closing-report-full-transitions-fixed.mp4`
+- Fresh close-out verification:
+  - `npm.cmd test -- --run` passed: 8 test files, 27 tests.
+  - `npm.cmd run build` passed. The existing large chunk warning from deck.gl / MapLibre remains expected.
+  - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `ffprobe` verified `closing-report-full-transitions-fixed.mp4` as 1920x1080, 30 fps, 82.0 seconds.
+- Remaining note:
+  - `todo.md` still keeps one manual visual verification item unchecked: confirm in browser that the heatmap and point layers remain readable together.
+
+## 2026-07-12 Layer Readability Verification
+
+- Resumed from the last remaining `todo.md` item: verify that the heatmap and earthquake point layers remain visually readable together.
+- Built the production app with `npm.cmd run build`; it passed with the existing expected large chunk warning from deck.gl / MapLibre.
+- Started a local static server for `dist` at `http://127.0.0.1:4173/` and confirmed it returned HTTP 200.
+- Used the HyperFrames-managed Chrome Headless Shell through `puppeteer-core` to open the built app and capture a browser screenshot.
+- Browser verification confirmed:
+  - the map canvas rendered with stable dimensions;
+  - both layer toggles were enabled;
+  - earthquake points remained visible above the heatmap;
+  - the event table and selected-event summary loaded from the current 16,691-record dataset.
+- The headless browser environment could not fetch OpenStreetMap tiles because external network access was denied, but the local deck.gl heatmap and point layers still rendered over the map canvas grid. This matches the known limitation that base map tiles require network access.
+- Updated `todo.md` to mark the heatmap/point readability verification complete.
+
+## 2026-07-12 Closing Report Proposal Comparison
+
+- Read the proposal document:
+  - `C:\Users\yamopeng\Downloads\職能學院\提案報告\2026_提案企劃書_彭元懋_1.1.docx`
+- Extracted the proposal's goal and schedule items:
+  - Project anchor: `台灣地震最大震度分類預測`.
+  - Required outcomes: clean structured dataset, maximum-intensity classification model, model evaluation with accuracy / per-class recall / confusion matrix, and maps/charts for supporting presentation.
+  - Schedule rows: 06/17 consultation, 06/24 environment and PRD, 07/01 data cleaning and exploration, 07/08 model/evaluation/report wrap-up.
+- Updated `hyperframes/closing-report/index.html` with two new scenes:
+  - `提案目標逐項對照`.
+  - `提案時程逐項對照`.
+- Marked completed items honestly:
+  - data cleaning, structured dataset output, maps/charts, Codex-assisted development, PRD, deployment, and closing report are complete.
+  - maximum-intensity classification model and model metrics are not complete and are labeled as unfinished / scope-adjusted follow-up work.
+- Extended the HyperFrames composition from 82 seconds to 96 seconds and shifted later scene timings.
+- Updated `tests/hyperframesClosingReport.test.js` to require the proposal comparison content.
+- Rendered the updated MP4:
+  - `hyperframes/closing-report/closing-report-proposal-comparison.mp4`
+- Verification:
+  - First ran `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` and confirmed the new proposal-comparison assertions failed before implementation.
+  - `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` passed: 3 tests.
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `npx.cmd hyperframes snapshot hyperframes\closing-report --at 22,30,95 --describe false` generated review frames for the new proposal scenes and ending.
+  - `npm.cmd run hf:render -- hyperframes\closing-report --output hyperframes\closing-report\closing-report-proposal-comparison.mp4 --quality standard --workers 1` completed successfully.
+  - `tools\ffmpeg\bin\ffprobe.exe` verified the updated MP4 as 1920x1080, 30 fps, 96.0 seconds.
+  - `npm.cmd test -- --run` passed: 8 test files, 28 tests.
+
+## 2026-07-12 Closing Report Learned Capabilities
+
+- Added a short final-section note to `hyperframes/closing-report/index.html`:
+  - `這個專案學到的能力：資料清理（Python）、互動地圖（React＋deck.gl）、自動化測試、公開部署（Vercel）。`
+- Kept the composition duration unchanged at 96 seconds and placed the note inside the final conclusion card.
+- Updated `tests/hyperframesClosingReport.test.js` to require the learned-capabilities text.
+- Rendered the updated MP4:
+  - `hyperframes/closing-report/closing-report-learned-capabilities.mp4`
+- Verification:
+  - First ran `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` and confirmed the new learned-capabilities assertion failed before implementation.
+  - `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` passed: 4 tests.
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `npx.cmd hyperframes snapshot hyperframes\closing-report --at 94.5 --describe false` generated a readable final-scene review frame.
+  - `npm.cmd run hf:render -- hyperframes\closing-report --output hyperframes\closing-report\closing-report-learned-capabilities.mp4 --quality standard --workers 1` completed successfully.
+  - `tools\ffmpeg\bin\ffprobe.exe` verified the updated MP4 as 1920x1080, 30 fps, 96.0 seconds.
+  - `npm.cmd test -- --run` passed: 8 test files, 29 tests.
+
+## 2026-07-12 Closing Report Cover Metadata
+
+- Added opening-cover metadata to `hyperframes/closing-report/index.html`:
+  - `姓名：彭元懋`
+  - `課程名稱：結構型資料的分析案例`
+  - `日期：2026-07-12`
+- Kept the composition duration unchanged at 96 seconds.
+- Updated `tests/hyperframesClosingReport.test.js` to require the cover metadata.
+- Rendered the updated MP4:
+  - `hyperframes/closing-report/closing-report-cover-metadata.mp4`
+- Verification:
+  - First ran `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` and confirmed the new cover-metadata assertion failed before implementation.
+  - `npm.cmd test -- --run tests/hyperframesClosingReport.test.js` passed: 5 tests.
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `npx.cmd hyperframes snapshot hyperframes\closing-report --at 2 --describe false` generated a readable cover review frame. The existing fontconfig cache warning appeared, but snapshots were produced successfully.
+  - `npm.cmd run hf:render -- hyperframes\closing-report --output hyperframes\closing-report\closing-report-cover-metadata.mp4 --quality standard --workers 1` completed successfully.
+  - `tools\ffmpeg\bin\ffprobe.exe` verified the updated MP4 as 1920x1080, 30 fps, 96.0 seconds.
+  - `npm.cmd test -- --run` passed: 8 test files, 30 tests.
+
+## 2026-07-12 Final Wrap-Up and GitHub Sync
+
+- Completed the final close-out pass requested by the user.
+- Current closing-report deliverable:
+  - HyperFrames composition: `hyperframes/closing-report/index.html`
+  - Latest rendered MP4: `hyperframes/closing-report/closing-report-cover-metadata.mp4`
+  - MP4 verification: 1920x1080, 30 fps, 96.0 seconds.
+- The final closing report now includes:
+  - opening metadata for name, course name, and date;
+  - proposal goal-by-goal comparison;
+  - proposal schedule-by-schedule comparison;
+  - learned capabilities: data cleaning with Python, interactive maps with React and deck.gl, automated testing, and public deployment with Vercel.
+- Fresh final verification before GitHub sync:
+  - `python -m unittest tests.test_process_earthquakes -v` passed: 3 tests.
+  - `npm.cmd test -- --run` passed: 8 test files, 30 tests.
+  - `npm.cmd run build` passed. The existing large chunk warning from deck.gl / MapLibre remains expected.
+  - `npx.cmd hyperframes lint hyperframes\closing-report` passed with 0 errors and 0 warnings.
+  - `npx.cmd hyperframes validate hyperframes\closing-report --no-contrast --timeout 5000` passed with no console errors.
+  - `tools\ffmpeg\bin\ffprobe.exe` verified `closing-report-cover-metadata.mp4` as 1920x1080, 30 fps, 96.0 seconds.
+- GitHub sync target:
+  - Branch: `main`
+  - Remote: `origin git@github.com:yamopeng0918/react-deckgl-project1.git`

@@ -1,6 +1,12 @@
 # Taiwan Earthquake Hotspot Explorer
 
-Local MVP for exploring Taiwan earthquake events from CSV data with a React + deck.gl interface.
+Interactive Taiwan earthquake explorer built with CSV data, React, and deck.gl.
+
+Public URL:
+
+```text
+https://react-deckgl-project1-kappa.vercel.app/
+```
 
 ## Current MVP
 
@@ -10,6 +16,8 @@ Local MVP for exploring Taiwan earthquake events from CSV data with a React + de
 - Magnitude range filter.
 - Map pan and zoom.
 - Event table with selected-event summary.
+- Heat-area click summary.
+- Yearly event count chart.
 - Focused map mode.
 - Dark theme mode.
 - Rerunnable data processing pipeline.
@@ -100,9 +108,60 @@ Production build:
 npm.cmd run build
 ```
 
+## HyperFrames Video Environment
+
+HeyGen HyperFrames is installed for HTML-to-video work.
+
+Installed project tooling:
+
+- `hyperframes@0.7.45`
+- Local FFmpeg / FFprobe under `tools/ffmpeg/bin/`
+- HyperFrames-managed Chrome Headless Shell cache
+
+Check the video environment:
+
+```powershell
+npm.cmd run hf:doctor
+```
+
+Preview a HyperFrames composition:
+
+```powershell
+npm.cmd run hf:preview
+```
+
+Render a HyperFrames composition to video:
+
+```powershell
+npm.cmd run hf:render
+```
+
+Docker and local AI audio helpers are optional and are not required for basic local MP4 rendering.
+
+Closing-report preview composition:
+
+```powershell
+npx.cmd hyperframes preview hyperframes/closing-report
+npx.cmd hyperframes lint hyperframes/closing-report
+npx.cmd hyperframes snapshot hyperframes/closing-report --frames 6 --describe false
+```
+
+Rendered closing-report video:
+
+```text
+hyperframes/closing-report/closing-report-full.mp4
+hyperframes/closing-report/closing-report-full-transitions.mp4
+```
+
 ## Vercel Deployment
 
 This project is deployed as a Vite static frontend.
+
+Current public deployment:
+
+```text
+https://react-deckgl-project1-kappa.vercel.app/
+```
 
 Vercel settings are recorded in `vercel.json`:
 
@@ -124,5 +183,4 @@ Deployment source hygiene:
 - Base map tiles use OpenStreetMap and require network access for the background map.
 - Earthquake data and deck.gl layers are local after data processing.
 - Vite build reports large chunk warnings because deck.gl and MapLibre are large dependencies; this is acceptable for the local MVP.
-- Heat-area click summaries remain optional and are not implemented yet.
 - Heatmap and point-layer readability should still be checked manually in the browser.

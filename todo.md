@@ -38,11 +38,12 @@
 ## Verification
 
 - [x] Verify the local app starts successfully.
+- [x] Verify the public Vercel deployment is reachable.
 - [x] Verify 1995-2024 data is included.
 - [x] Verify 2025 handling is either included or clearly marked as excluded.
 - [x] Verify year filtering changes map results.
 - [x] Verify magnitude filtering changes map results.
-- [ ] Verify heatmap and point layers remain readable together.
+- [x] Verify heatmap and point layers remain readable together.
 - [x] Verify the data processing script can be rerun from a clean state.
 
 ## Documentation
