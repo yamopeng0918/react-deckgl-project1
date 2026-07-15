@@ -178,9 +178,35 @@ Deployment source hygiene:
 - Do not commit local logs or Python `__pycache__` files.
 - `public/data/earthquakes.json` is the frontend data file that must be committed when the processed dataset changes.
 
+## Maximum-Intensity Decision Tree
+
+Install the Python model dependencies:
+
+```powershell
+python -m pip install -r requirements-model.txt
+```
+
+Train and evaluate the classifier with the current processed dataset:
+
+```powershell
+python scripts/train_intensity_classifier.py
+```
+
+The model normalizes `5弱` / `5強` to class `5` and `6弱` / `6強` to class `6`. It trains on 1995–2023 records and evaluates only on 2024–2026 records. Features are magnitude, depth, longitude, latitude, event month, and event hour.
+
+Generated reports are written to `data/model/`:
+
+- `decision_tree_metrics.json`
+- `decision_tree_class_report.csv`
+- `decision_tree_confusion_matrix.csv`
+- `decision_tree_confusion_matrix.png`
+
+The fitted `decision_tree_model.joblib` is generated locally and ignored by Git. The confusion-matrix rows are actual classes and columns are predicted classes.
+
 ## Known Limitations
 
 - Base map tiles use OpenStreetMap and require network access for the background map.
 - Earthquake data and deck.gl layers are local after data processing.
 - Vite build reports large chunk warnings because deck.gl and MapLibre are large dependencies; this is acceptable for the local MVP.
 - Heatmap and point-layer readability should still be checked manually in the browser.
+- The decision-tree result is a baseline classification model, not an earthquake prediction system. Chronological test performance is limited, and rare intensity classes have too few or no recent examples for stable recall estimates.

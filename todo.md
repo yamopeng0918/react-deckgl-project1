@@ -53,3 +53,13 @@
 - [x] Document MVP scope and out-of-scope items.
 - [x] Document how to rerun data processing.
 - [x] Record any known limitations.
+
+## Maximum-Intensity Classification
+
+- [x] Normalize historical and modern maximum-intensity labels to classes 0–7.
+- [x] Train a decision-tree classifier on 1995–2023 data.
+- [x] Evaluate chronologically on 2024–2026 data.
+- [x] Report overall accuracy and per-class recall with support counts.
+- [x] Export a labeled confusion matrix as CSV and PNG.
+- [x] Add automated model and artifact tests.
+- [x] Document the rerun command and rare-class limitations.

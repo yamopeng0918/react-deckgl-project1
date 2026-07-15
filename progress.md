@@ -906,3 +906,31 @@ Completed so far:
 - GitHub sync target:
   - Branch: `main`
   - Remote: `origin git@github.com:yamopeng0918/react-deckgl-project1.git`
+
+## 2026-07-15 Decision Tree Maximum-Intensity Classifier
+
+- Added a rerunnable maximum-intensity classification pipeline at `scripts/train_intensity_classifier.py`.
+- Normalized `5弱` / `5強` to class 5 and `6弱` / `6強` to class 6; retained numeric classes 0–7.
+- Used magnitude, depth, longitude, latitude, month, and hour as features.
+- Used a chronological evaluation design:
+  - training: 1995–2023, 13,617 records;
+  - testing: 2024–2026, 3,039 records;
+  - excluded: 35 records with missing maximum intensity;
+  - usable total: 16,656 of 16,691 records.
+- Selected the decision tree using 2021–2023 validation data contained entirely within the training period:
+  - `max_depth=12`;
+  - `min_samples_leaf=1`;
+  - validation macro recall: 0.3287;
+  - validation accuracy: 0.3465.
+- Chronological test results:
+  - overall accuracy: 0.2833 (28.33%);
+  - intensity 0 recall: 0.0000, support 1;
+  - intensity 1 recall: 0.2630, support 289;
+  - intensity 2 recall: 0.2527, support 1,278;
+  - intensity 3 recall: 0.2857, support 910;
+  - intensity 4 recall: 0.3550, support 538;
+  - intensity 5 recall: 0.4737, support 19;
+  - intensity 6 recall: 0.5000, support 4;
+  - intensity 7 recall: unavailable, support 0.
+- Generated `data/model/decision_tree_metrics.json`, class report CSV, labeled confusion-matrix CSV and PNG, plus a locally ignored joblib model.
+- Rare-class metrics are not treated as stable conclusions: the chronological test set has only one intensity-0 event, four intensity-6 events, and no intensity-7 events.

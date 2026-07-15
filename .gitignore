@@ -21,3 +21,6 @@ hyperframes/**/*.mp4
 hyperframes/closing-report/closing-report-from-mp4.pptx
 hyperframes/closing-report/closing-report-彭元懋.pptx
 hyperframes/closing-report/closing-report-彭元懋.zip
+
+# Generated model binary
+data/model/decision_tree_model.joblib
