@@ -63,3 +63,12 @@
 - [x] Export a labeled confusion matrix as CSV and PNG.
 - [x] Add automated model and artifact tests.
 - [x] Document the rerun command and rare-class limitations.
+
+## Final Closing Report Deliverables
+
+- [x] Update closing report page 4 with measured model results.
+- [x] Update closing report page 5 with the completed model milestone.
+- [x] Add the page-4 link to the one-page decision-tree result deck.
+- [x] Re-render the 96-second closing report MP4.
+- [x] Rebuild the closing report as a 14-slide PowerPoint.
+- [x] Verify the final video and PowerPoint artifacts.

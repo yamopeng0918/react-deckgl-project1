@@ -340,6 +340,27 @@
         line-height: 1.38;
       }
 
+      .proposal-link {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 14px;
+        padding: 9px 14px;
+        border: 1px solid rgba(56, 213, 255, 0.42);
+        border-radius: 9px;
+        background: rgba(56, 213, 255, 0.1);
+        color: #dff8ff;
+        font-size: 21px;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .proposal-link:hover,
+      .proposal-link:focus-visible {
+        background: rgba(56, 213, 255, 0.2);
+        outline: 2px solid rgba(56, 213, 255, 0.58);
+        outline-offset: 2px;
+      }
+
       .status-pill {
         display: inline-flex;
         width: fit-content;
@@ -503,27 +524,28 @@
       <section id="scene-proposal-goals" class="clip" data-motion="scene" data-start="21" data-duration="7" data-track-index="3">
         <div class="scene">
           <div class="kicker">提案目標逐項對照</div>
-          <h2>原提案為「台灣地震最大震度分類預測」，結案成果改以互動視覺化 MVP 完成</h2>
+          <h2>原提案核心成果已補齊：資料整理、分類模型、效能評估與互動視覺化皆已完成</h2>
           <div class="comparison-grid" data-motion-group="cards">
             <div class="comparison-card">
               <div class="status-pill status-done">已完成</div>
               <div class="proposal-item">整理乾淨的結構化資料集</div>
-              <div class="proposal-note">已合併 48 個 CSV，輸出 16,691 筆 1995-2026 年地震資料，並保留可重跑的 Python 清理流程。</div>
+              <div class="proposal-note">已整合 48 個 CSV、共 16,691 筆 1995-2026 年地震紀錄；其中 16,656 筆可供模型使用，並保留可重跑的 Python 資料流程。</div>
             </div>
             <div class="comparison-card">
-              <div class="status-pill status-adjusted">範圍調整</div>
-              <div class="proposal-item">地圖／圖表輔助呈現資料分布與結果</div>
-              <div class="proposal-note">已完成熱區圖、地震點位、年份與震級篩選、年度事件量圖表，以及點位與熱區摘要。</div>
+              <div class="status-pill status-done">已完成</div>
+              <div class="proposal-item">最大震度決策樹分類模型</div>
+              <div class="proposal-note">以震級、深度、經緯度、月份與小時為特徵；使用 1995-2023 年 13,617 筆資料訓練，2024-2026 年 3,039 筆資料測試。</div>
             </div>
             <div class="comparison-card">
-              <div class="status-pill status-open">未完成</div>
-              <div class="proposal-item">最大震度分類模型</div>
-              <div class="proposal-note">提案中的 scikit-learn 決策樹／隨機森林分類模型尚未實作；本階段先完成資料處理與互動展示。</div>
+              <div class="status-pill status-done">已完成</div>
+              <div class="proposal-item">準確率、各等級命中率與混淆矩陣</div>
+              <div class="proposal-note">時間外推測試準確率為 28.33%；震度 1-6 命中率為 26.3%、25.3%、28.6%、35.5%、47.4%、50.0%。震度 5、6 樣本僅 19、4 筆，震度 7 沒有測試樣本。</div>
+              <a class="proposal-link" href="./decision-tree-results.pptx">開啟分類結果簡報（PPTX）</a>
             </div>
             <div class="comparison-card">
-              <div class="status-pill status-open">未完成</div>
-              <div class="proposal-item">準確率、各等級命中率、混淆矩陣</div>
-              <div class="proposal-note">模型評估指標需等分類模型完成後補上；目前驗證重點改為資料流程、前端互動與公開部署。</div>
+              <div class="status-pill status-done">已完成</div>
+              <div class="proposal-item">地圖與圖表輔助呈現</div>
+              <div class="proposal-note">已完成熱區圖、地震點位、年份與震級篩選、年度統計，以及分類結果單頁簡報，支援互動探索與成果展示。</div>
             </div>
           </div>
         </div>
@@ -532,7 +554,7 @@
       <section id="scene-proposal-schedule" class="clip" data-motion="scene" data-start="28" data-duration="7" data-track-index="4">
         <div class="scene">
           <div class="kicker">提案時程逐項對照</div>
-          <h2>依提案書列出時程，標示目前完成狀況</h2>
+          <h2>依提案書列出時程，更新最終完成狀況</h2>
           <div class="schedule-grid" data-motion-group="cards">
             <div class="schedule-card">
               <div class="schedule-date">06/17</div>
@@ -555,8 +577,8 @@
             <div class="schedule-card">
               <div class="schedule-date">07/08</div>
               <div class="proposal-item">建立模型＋效能評估＋結果整理</div>
-              <div class="status-pill status-adjusted">範圍調整</div>
-              <div class="schedule-note">已完成結果整理、部署與結案影片；模型與效能評估列為後續延伸。</div>
+              <div class="status-pill status-done">已完成</div>
+              <div class="schedule-note">決策樹分類模型、時間外推效能評估、混淆矩陣與結果簡報皆已完成，並納入結案成果展示。</div>
             </div>
           </div>
         </div>

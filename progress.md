@@ -934,3 +934,115 @@ Completed so far:
   - intensity 7 recall: unavailable, support 0.
 - Generated `data/model/decision_tree_metrics.json`, class report CSV, labeled confusion-matrix CSV and PNG, plus a locally ignored joblib model.
 - Rare-class metrics are not treated as stable conclusions: the chronological test set has only one intensity-0 event, four intensity-6 events, and no intensity-7 events.
+
+## 2026-07-12 Closing Report PowerPoint Export
+
+- Converted the latest closing-report MP4 into a PowerPoint deck:
+  - Source MP4: `hyperframes/closing-report/closing-report-cover-metadata.mp4`
+  - Output PPTX: `hyperframes/closing-report/closing-report-from-mp4.pptx`
+- Export format:
+  - 16:9 widescreen PowerPoint.
+  - 16 slides generated from representative frames of the 96-second MP4.
+  - Each slide uses a full-slide 1920x1080 frame image.
+- Verification:
+  - ZIP/OpenXML package integrity check passed with no bad entries.
+  - Verified 16 slide XML files and 16 media images inside the PPTX.
+  - Removed temporary extracted frame images after export.
+
+## 2026-07-12 Closing Report PowerPoint Cleanup
+
+- Rebuilt `hyperframes/closing-report/closing-report-from-mp4.pptx` after reviewing the first MP4-to-PPTX export.
+- Fixed the export approach:
+  - replaced evenly sampled frames with one representative frame from the midpoint of each HyperFrames scene;
+  - removed blank / transition-only pages;
+  - removed duplicate or near-duplicate pages caused by sampling close frames from the same scene.
+- Confirmed the rebuilt deck includes the previously missing sections:
+  - `公開部署`;
+  - `目前限制與後續延伸`.
+- Final PPTX structure:
+  - 14 slides, matching the 14 closing-report scenes.
+  - 14 embedded full-slide images.
+- Verification:
+  - all 14 extracted source frames had distinct file hashes before packaging;
+  - ZIP/OpenXML package integrity check passed with no bad entries;
+  - verified 14 slide XML files and 14 media images inside the PPTX;
+  - removed temporary extracted frame images after export.
+
+## 2026-07-15 Decision Tree Results Review Slide
+
+- Created a one-page 16:9 PowerPoint summary at `data/model/decision-tree-results-review.pptx`.
+- The slide includes overall accuracy, chronological train/test periods, record counts, per-intensity recall with support, the confusion matrix, and a rare-class limitation note.
+- Added a rerunnable generator at `scripts/create_decision_tree_results_slide.py` and an automated structure test.
+- The local environment has neither PowerPoint COM nor LibreOffice, so review is performed from the PPTX directly rather than a rendered preview image.
+
+## 2026-07-15 Closing Report Page 4 Model Results Update
+
+- Rewrote closing report page 4 (`scene-proposal-goals`) after user review.
+- Updated all four proposal-result cards to completed status with the measured dataset, decision-tree, chronological evaluation, and visualization outcomes.
+- Added a card-3 hyperlink to `hyperframes/closing-report/decision-tree-results.pptx`.
+- Verified the linked PPTX exists and matches the approved one-page result deck.
+- Verification:
+  - focused Vitest passed: 6 tests;
+  - HyperFrames lint passed with 0 errors and 0 warnings;
+  - HyperFrames headless validation passed with no console errors;
+  - page-4 snapshot at 24 seconds showed no clipping or overlap.
+- Follow-up update: page 5 now marks the 07/08 model/evaluation milestone complete and states that the decision tree, chronological evaluation, confusion matrix, and result deck are finished.
+- Page-5 verification passed with 7 focused tests, 0 HyperFrames lint errors/warnings, no headless console errors, and a readable 30-second snapshot.
+
+## 2026-07-15 Closing Report Re-render with Model Results
+
+- Re-rendered the full closing report after approval of the page 4 model results and page 5 final schedule update.
+- Output: `hyperframes/closing-report/closing-report-model-results-final.mp4`.
+- Pre-render verification:
+  - focused closing-report tests passed: 7 tests;
+  - HyperFrames lint passed with 0 errors and 0 warnings;
+  - HyperFrames headless validation passed with no console errors.
+- FFprobe verification:
+  - H.264 video;
+  - 1920x1080;
+  - 30 fps;
+  - 2,880 frames;
+  - 96.0 seconds;
+  - 8,931,434 bytes.
+- SHA-256: `F7DDD9F621EA57B9679E3C43B41505F9BE6CCC876EE6E058A463F05F7EDCCBBC`.
+
+## 2026-07-15 Closing Report PowerPoint Rebuild with Model Results
+
+- Rebuilt the latest closing report as `hyperframes/closing-report/closing-report-model-results-final.pptx`.
+- Used one readable midpoint frame from each of the 14 HyperFrames scenes; excluded the extra end-of-timeline fade frame.
+- Added an invisible PowerPoint hyperlink overlay on slide 4 that points to the colocated `decision-tree-results.pptx`.
+- Verification:
+  - PowerPoint generator test passed;
+  - 14 slides and 14 embedded scene images;
+  - all 14 image hashes are distinct;
+  - 16:9 slide size (13.333 x 7.5 inches);
+  - OpenXML ZIP integrity passed with no bad entry;
+  - slide 4 relationship contains `decision-tree-results.pptx`.
+- Output size: 12,432,646 bytes.
+- SHA-256 after the final reproducible rebuild: `8498A90E0878CD11B5533B0C8F34575817D61465293B7694366AFE57E9FEF0E3`.
+
+## 2026-07-15 Final Project Close-Out
+
+- Closed the decision-tree model and updated closing-report work as the final project pass.
+- Final local deliverables:
+  - interactive closing report: `hyperframes/closing-report/index.html`;
+  - final MP4: `hyperframes/closing-report/closing-report-model-results-final.mp4`;
+  - final 14-slide PowerPoint: `hyperframes/closing-report/closing-report-model-results-final.pptx`;
+  - linked one-page model results: `hyperframes/closing-report/decision-tree-results.pptx`;
+  - model metrics and confusion matrix: `data/model/`.
+- The MP4 remains a local generated artifact under the existing `hyperframes/**/*.mp4` ignore rule.
+- Source generators and automated tests are retained so both PowerPoint deliverables can be regenerated.
+- Final review hardened the closing-report generator:
+  - the 14 documented midpoint frame names and order are now fixed in the generator;
+  - running the documented command no longer requires manually listing frame paths;
+  - the linked result deck must exist and pass PPTX/OpenXML validation before export;
+  - automated checks cover the slide-4 hyperlink overlay position and invalid linked-deck rejection.
+- The page-5 source frame was visually inspected at its original 1920x1080 resolution. Its dark upper/lower areas are the full-slide background and layout whitespace, not letterboxing; no crop was applied.
+- Fresh final verification:
+  - `python -W error::ResourceWarning -m unittest discover -s tests -p 'test_*.py' -v` passed: 19 tests;
+  - `npm.cmd test -- --run` passed: 8 test files, 32 tests;
+  - `npm.cmd run build` passed with the existing expected large-chunk warning;
+  - HyperFrames lint passed with 0 errors and 0 warnings;
+  - HyperFrames headless validation passed with no console errors;
+  - FFprobe confirmed the final MP4 as 1920x1080, 30 fps, 2,880 frames, and 96.0 seconds;
+  - all three final PPTX files passed OpenXML package integrity checks.

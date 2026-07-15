@@ -149,9 +149,25 @@ npx.cmd hyperframes snapshot hyperframes/closing-report --frames 6 --describe fa
 Rendered closing-report video:
 
 ```text
-hyperframes/closing-report/closing-report-full.mp4
-hyperframes/closing-report/closing-report-full-transitions.mp4
+hyperframes/closing-report/closing-report-model-results-final.mp4
 ```
+
+Latest closing-report PowerPoint deliverables:
+
+```text
+hyperframes/closing-report/closing-report-model-results-final.pptx
+hyperframes/closing-report/decision-tree-results.pptx
+```
+
+The closing-report PowerPoint has 14 scene slides. Slide 4 links to the one-page decision-tree result deck when both PPTX files remain in the same directory.
+
+To regenerate it from the documented midpoint snapshots (in fixed scene order), run:
+
+```powershell
+python scripts/create_closing_report_powerpoint.py --output hyperframes/closing-report/closing-report-model-results-final.pptx
+```
+
+The generator validates that `hyperframes/closing-report/decision-tree-results.pptx` exists and is a readable PowerPoint package before creating the report.
 
 ## Vercel Deployment
 

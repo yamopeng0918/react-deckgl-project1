@@ -1,10 +1,17 @@
 import { describe, expect, test } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const compositionPath = resolve(__dirname, '..', 'hyperframes', 'closing-report', 'index.html');
+const decisionTreeDeckPath = resolve(
+  __dirname,
+  '..',
+  'hyperframes',
+  'closing-report',
+  'decision-tree-results.pptx',
+);
 
 function readComposition() {
   return readFileSync(compositionPath, 'utf8');
@@ -34,13 +41,10 @@ describe('closing report HyperFrames composition', () => {
     const html = readComposition();
 
     expect(html).toContain('提案目標逐項對照');
-    expect(html).toContain('台灣地震最大震度分類預測');
     expect(html).toContain('整理乾淨的結構化資料集');
-    expect(html).toContain('最大震度分類模型');
-    expect(html).toContain('準確率、各等級命中率、混淆矩陣');
-    expect(html).toContain('地圖／圖表輔助呈現資料分布與結果');
-    expect(html).toContain('範圍調整');
-    expect(html).toContain('未完成');
+    expect(html).toContain('最大震度決策樹分類模型');
+    expect(html).toContain('準確率、各等級命中率與混淆矩陣');
+    expect(html).toContain('地圖與圖表輔助呈現');
     expect(html).toContain('06/17');
     expect(html).toContain('首次諮詢：定主題、認識 Codex CLI');
     expect(html).toContain('06/24');
@@ -49,6 +53,24 @@ describe('closing report HyperFrames composition', () => {
     expect(html).toContain('資料整理與探索');
     expect(html).toContain('07/08');
     expect(html).toContain('建立模型＋效能評估＋結果整理');
+  });
+
+  test('updates proposal results with measured model outcomes and a working deck link', () => {
+    const html = readComposition();
+
+    expect(html).toContain('原提案核心成果已補齊');
+    expect(html).toContain('時間外推測試準確率為 28.33%');
+    expect(html).toContain('震度 7 沒有測試樣本');
+    expect(html).toContain('href="./decision-tree-results.pptx"');
+    expect(existsSync(decisionTreeDeckPath)).toBe(true);
+  });
+
+  test('updates the final proposal schedule milestone with completed model work', () => {
+    const html = readComposition();
+
+    expect(html).toContain('更新最終完成狀況');
+    expect(html).toContain('決策樹分類模型、時間外推效能評估、混淆矩陣與結果簡報皆已完成');
+    expect(html).not.toContain('模型與效能評估列為後續延伸');
   });
 
   test('shows presenter, course, and date on the opening cover', () => {
