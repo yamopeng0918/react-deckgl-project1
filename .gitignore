@@ -18,6 +18,7 @@ hyperframes/**/snapshots/
 hyperframes/**/*.mp4
 
 # Local closing-report deliverables
+hyperframes/closing-report/
 hyperframes/closing-report/closing-report-from-mp4.pptx
 hyperframes/closing-report/closing-report-model-results-final.pptx
 hyperframes/closing-report/closing-report-彭元懋.pptx

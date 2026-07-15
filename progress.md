@@ -1052,3 +1052,9 @@ Completed so far:
 - Changed `hyperframes/closing-report/closing-report-model-results-final.pptx` to a local-only generated deliverable.
 - Added an exact `.gitignore` rule for that file and removed it from Git tracking without deleting the local copy.
 - Kept `hyperframes/closing-report/decision-tree-results.pptx` tracked because page 4 links to that colocated result deck.
+
+## 2026-07-15 Local-Only Closing Report Directory
+
+- Expanded the local-only rule from the final PowerPoint to the entire `hyperframes/closing-report/` directory at the user's request.
+- Removed the directory's HTML, local GSAP asset, and linked result PowerPoint from Git tracking without deleting any local files.
+- Closing-report source pages, snapshots, videos, and PowerPoint deliverables now remain only in the local workspace.
