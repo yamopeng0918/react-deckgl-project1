@@ -2,6 +2,7 @@ node_modules/
 dist/
 .vercel/
 coverage/
+.worktrees/
 
 *.log
 *.pyc
@@ -15,3 +16,8 @@ tools/ffmpeg-*.zip
 tools/ffmpeg-extract/
 hyperframes/**/snapshots/
 hyperframes/**/*.mp4
+
+# Local closing-report deliverables
+hyperframes/closing-report/closing-report-from-mp4.pptx
+hyperframes/closing-report/closing-report-彭元懋.pptx
+hyperframes/closing-report/closing-report-彭元懋.zip
