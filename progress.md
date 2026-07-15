@@ -1046,3 +1046,9 @@ Completed so far:
   - HyperFrames headless validation passed with no console errors;
   - FFprobe confirmed the final MP4 as 1920x1080, 30 fps, 2,880 frames, and 96.0 seconds;
   - all three final PPTX files passed OpenXML package integrity checks.
+
+## 2026-07-15 Local-Only Final PowerPoint
+
+- Changed `hyperframes/closing-report/closing-report-model-results-final.pptx` to a local-only generated deliverable.
+- Added an exact `.gitignore` rule for that file and removed it from Git tracking without deleting the local copy.
+- Kept `hyperframes/closing-report/decision-tree-results.pptx` tracked because page 4 links to that colocated result deck.
