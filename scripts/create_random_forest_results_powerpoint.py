@@ -1,5 +1,6 @@
 import argparse
 import json
+import math
 import os
 import tempfile
 import zipfile
@@ -21,6 +22,19 @@ WHITE = RGBColor(255, 255, 255)
 TEAL = RGBColor(31, 128, 125)
 AMBER = RGBColor(218, 147, 53)
 FONT = "Microsoft JhengHei"
+PARAMETER_KEYS = {
+    "n_estimators", "max_depth", "min_samples_leaf", "max_features",
+    "class_weight", "random_state", "validation_start_year",
+    "validation_end_year", "validation_macro_recall", "validation_accuracy",
+}
+
+
+def _is_finite_number(value):
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
+
+
+def _is_integer(value):
+    return not isinstance(value, bool) and isinstance(value, int)
 
 
 def load_and_validate_metrics(metrics_path):
@@ -36,24 +50,45 @@ def load_and_validate_metrics(metrics_path):
         values = metrics.get(field)
         if not isinstance(values, dict) or set(values) != expected_keys:
             raise ValueError(f"{field} keys must be exactly 0 through 7")
+    for label, value in metrics["recall"].items():
+        if value is not None and (not _is_finite_number(value) or not 0 <= value <= 1):
+            raise ValueError(f"recall {label} must be None or a finite number from 0 through 1")
+    for label, value in metrics["support"].items():
+        if not _is_integer(value) or value < 0:
+            raise ValueError(f"support {label} must be a finite non-negative integer")
     matrix = metrics.get("confusion_matrix")
     if not isinstance(matrix, list) or len(matrix) != 8 or any(
         not isinstance(row, list) or len(row) != 8 for row in matrix
     ):
         raise ValueError("confusion matrix must be exactly 8 x 8")
     for row_index, row in enumerate(matrix):
-        if any(
-            isinstance(value, bool)
-            or not isinstance(value, (int, float))
-            or value < 0
-            for value in row
-        ):
-            raise ValueError("confusion matrix must contain numeric non-negative counts")
+        if any(not _is_integer(value) or value < 0 for value in row):
+            raise ValueError("confusion matrix must contain finite non-negative integer counts")
         support = metrics["support"][str(row_index)]
-        if isinstance(support, bool) or not isinstance(support, (int, float)) or support < 0:
-            raise ValueError(f"support {row_index} must be a numeric non-negative count")
         if sum(row) != support:
             raise ValueError(f"confusion matrix row {row_index} total disagrees with support")
+    accuracy = metrics.get("accuracy")
+    if not _is_finite_number(accuracy) or not 0 <= accuracy <= 1:
+        raise ValueError("accuracy must be a finite number from 0 through 1")
+    periods = metrics.get("periods")
+    if not isinstance(periods, dict):
+        raise ValueError("periods must contain ordered train and test year pairs")
+    for name in ("train", "test"):
+        period = periods.get(name)
+        if (
+            not isinstance(period, list) or len(period) != 2
+            or any(not _is_integer(year) for year in period)
+            or period[0] > period[1]
+        ):
+            raise ValueError(f"periods {name} must be two ordered integer years")
+    for field in ("train_rows", "test_rows"):
+        value = metrics.get(field)
+        if not _is_integer(value) or value <= 0:
+            raise ValueError(f"{field} must be a positive integer")
+    parameters = metrics.get("selected_parameters")
+    if not isinstance(parameters, dict) or not PARAMETER_KEYS.issubset(parameters):
+        missing = sorted(PARAMETER_KEYS - set(parameters)) if isinstance(parameters, dict) else sorted(PARAMETER_KEYS)
+        raise ValueError(f"selected_parameters must be a dict containing required keys; missing: {missing}")
     return metrics
 
 
@@ -170,12 +205,15 @@ def create_random_forest_results_powerpoint(metrics_path, matrix_path, output_pa
     temporary = Path(temporary_name)
     try:
         deck.save(temporary)
-        with zipfile.ZipFile(temporary) as package:
-            if package.testzip() is not None:
-                raise ValueError("generated PowerPoint package is corrupt")
-        reopened = Presentation(temporary)
-        if len(reopened.slides) != 2:
-            raise ValueError("generated PowerPoint must contain exactly two slides")
+        try:
+            with zipfile.ZipFile(temporary) as package:
+                if package.testzip() is not None:
+                    raise ValueError("generated PowerPoint package is corrupt")
+            reopened = Presentation(temporary)
+            if len(reopened.slides) != 2:
+                raise ValueError("generated PowerPoint must contain exactly two slides")
+        except Exception as error:
+            raise ValueError("generated PowerPoint package is corrupt or cannot be reopened") from error
         os.replace(temporary, output_path)
     finally:
         temporary.unlink(missing_ok=True)
