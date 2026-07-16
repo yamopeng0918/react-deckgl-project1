@@ -26,3 +26,4 @@ hyperframes/closing-report/closing-report-彭元懋.zip
 
 # Generated model binary
 data/model/decision_tree_model.joblib
+data/model/random_forest_model.joblib
