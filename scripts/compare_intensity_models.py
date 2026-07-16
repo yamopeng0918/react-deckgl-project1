@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 
-COMPARISON_FIELDS = ("periods.test", "test_rows", "labels", "support")
 REQUIRED_FIELDS = ("accuracy", "periods", "test_rows", "labels", "support", "recall")
 FIELDNAMES = [
     "model",

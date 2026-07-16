@@ -6,7 +6,6 @@ import unittest
 from pathlib import Path
 
 from scripts.compare_intensity_models import (
-    FIELDNAMES,
     build_comparison_rows,
     load_metrics,
     macro_recall,
@@ -73,6 +72,8 @@ class ModelComparisonTest(unittest.TestCase):
     def test_pipeline_writes_exact_headers_and_values_and_preserves_output_on_invalid_input(self):
         tree = sample_metrics(accuracy=0.25)
         forest = sample_metrics(accuracy=0.75, recall_offset=0.1)
+        tree["recall"]["7"] = None
+        forest["recall"]["7"] = None
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             tree_path = root / "tree.json"
@@ -87,11 +88,50 @@ class ModelComparisonTest(unittest.TestCase):
                 rows = list(reader)
                 headers = reader.fieldnames
 
-            self.assertEqual(headers, FIELDNAMES)
-            self.assertEqual([row["model"] for row in rows], ["decision_tree", "random_forest"])
-            self.assertEqual(rows[0]["accuracy"], str(tree["accuracy"]))
-            self.assertEqual(rows[1]["recall_3"], str(forest["recall"]["3"]))
-            self.assertEqual(rows[1]["support_3"], str(forest["support"]["3"]))
+            self.assertEqual(
+                headers,
+                [
+                    "model",
+                    "accuracy",
+                    "macro_recall",
+                    "recall_0",
+                    "support_0",
+                    "recall_1",
+                    "support_1",
+                    "recall_2",
+                    "support_2",
+                    "recall_3",
+                    "support_3",
+                    "recall_4",
+                    "support_4",
+                    "recall_5",
+                    "support_5",
+                    "recall_6",
+                    "support_6",
+                    "recall_7",
+                    "support_7",
+                ],
+            )
+            for row, model_name, metrics in (
+                (rows[0], "decision_tree", tree),
+                (rows[1], "random_forest", forest),
+            ):
+                self.assertEqual(row["model"], model_name)
+                self.assertEqual(row["accuracy"], str(metrics["accuracy"]))
+                non_null_recalls = [
+                    value for value in metrics["recall"].values() if value is not None
+                ]
+                expected_macro_recall = sum(non_null_recalls) / len(non_null_recalls)
+                self.assertEqual(row["macro_recall"], str(expected_macro_recall))
+                for label in range(8):
+                    expected_recall = metrics["recall"][str(label)]
+                    self.assertEqual(
+                        row[f"recall_{label}"],
+                        "" if expected_recall is None else str(expected_recall),
+                    )
+                    self.assertEqual(
+                        row[f"support_{label}"], str(metrics["support"][str(label)])
+                    )
 
             original_csv = output_path.read_text(encoding="utf-8")
             forest["support"]["7"] = 99
@@ -99,6 +139,23 @@ class ModelComparisonTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "support"):
                 run_pipeline(tree_path, forest_path, output_path)
             self.assertEqual(output_path.read_text(encoding="utf-8"), original_csv)
+
+    def test_invalid_inputs_do_not_create_output_when_it_does_not_exist(self):
+        tree = sample_metrics()
+        forest = sample_metrics()
+        forest["test_rows"] = 9
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            tree_path = root / "tree.json"
+            forest_path = root / "forest.json"
+            output_path = root / "model_comparison.csv"
+            tree_path.write_text(json.dumps(tree), encoding="utf-8")
+            forest_path.write_text(json.dumps(forest), encoding="utf-8")
+
+            self.assertFalse(output_path.exists())
+            with self.assertRaisesRegex(ValueError, "test_rows"):
+                run_pipeline(tree_path, forest_path, output_path)
+            self.assertFalse(output_path.exists())
 
     def test_load_failure_identifies_metrics_path(self):
         missing = Path("missing-model-metrics.json")
