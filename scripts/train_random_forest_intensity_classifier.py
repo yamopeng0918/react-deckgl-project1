@@ -4,15 +4,26 @@ from pathlib import Path
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, recall_score
 
-from scripts.intensity_model_common import (
-    FEATURE_NAMES,
-    evaluate_model,
-    features_and_targets,
-    load_model_rows,
-    split_rows,
-    stable_rows,
-    write_model_artifacts,
-)
+if __package__:
+    from scripts.intensity_model_common import (
+        FEATURE_NAMES,
+        evaluate_model,
+        features_and_targets,
+        load_model_rows,
+        split_rows,
+        stable_rows,
+        write_model_artifacts,
+    )
+else:
+    from intensity_model_common import (
+        FEATURE_NAMES,
+        evaluate_model,
+        features_and_targets,
+        load_model_rows,
+        split_rows,
+        stable_rows,
+        write_model_artifacts,
+    )
 
 
 CANDIDATE_PARAMETERS = [

@@ -4,17 +4,30 @@ from pathlib import Path
 from sklearn.metrics import accuracy_score, recall_score
 from sklearn.tree import DecisionTreeClassifier
 
-from scripts.intensity_model_common import (
-    FEATURE_NAMES,
-    LABELS,
-    evaluate_model,
-    features_and_targets,
-    load_model_rows,
-    normalize_intensity,
-    split_rows,
-    stable_rows,
-    write_model_artifacts,
-)
+if __package__:
+    from scripts.intensity_model_common import (
+        FEATURE_NAMES,
+        LABELS,
+        evaluate_model,
+        features_and_targets,
+        load_model_rows,
+        normalize_intensity,
+        split_rows,
+        stable_rows,
+        write_model_artifacts,
+    )
+else:
+    from intensity_model_common import (
+        FEATURE_NAMES,
+        LABELS,
+        evaluate_model,
+        features_and_targets,
+        load_model_rows,
+        normalize_intensity,
+        split_rows,
+        stable_rows,
+        write_model_artifacts,
+    )
 
 
 CANDIDATE_PARAMETERS = [

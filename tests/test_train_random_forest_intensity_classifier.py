@@ -1,5 +1,7 @@
 import csv
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 import warnings
@@ -14,6 +16,24 @@ from scripts.train_random_forest_intensity_classifier import (
     run_pipeline,
     select_model,
 )
+
+
+class DirectCliExecutionTest(unittest.TestCase):
+    def test_help_works_when_script_is_executed_directly(self):
+        root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/train_random_forest_intensity_classifier.py",
+                "--help",
+            ],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--train-end-year", result.stdout)
 
 
 def selection_rows():
