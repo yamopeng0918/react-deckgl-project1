@@ -243,7 +243,7 @@ The generated PowerPoint is written to:
 data/model/random-forest-results.pptx
 ```
 
-Slide 1 summarizes the chronological test metrics, per-class recall/support, selected parameters, and rare-class warning. Slide 2 renders and embeds the confusion matrix directly from the validated metrics JSON (the legacy `--matrix` option is ignored) and explains the principal 2–4 震度類別 confusion and support limitation.
+Slide 1 summarizes the chronological test metrics, per-class recall/support, selected parameters, and rare-class warning. Slide 2 renders and embeds the confusion matrix directly from the validated metrics JSON (the legacy `--matrix` option is ignored) and explains the principal 2–4 震度類別之間的混淆 and support limitation.
 
 ## Known Limitations
 

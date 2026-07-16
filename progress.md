@@ -1084,7 +1084,7 @@ Completed so far:
 - Generated the real two-slide 16:9 result deck at `data/model/random-forest-results.pptx` with `python scripts/create_random_forest_results_powerpoint.py`.
 - Slide 1 records chronological test accuracy 43.90% and macro recall 40.81%.
 - Per-class recall/support shown in the deck: intensity 0 = 0.0%/1; 1 = 19.4%/289; 2 = 43.2%/1,278; 3 = 39.8%/910; 4 = 64.9%/538; 5 = 68.4%/19; 6 = 50.0%/4; 7 = N/A/0.
-- Slide 2 embeds `data/model/random_forest_confusion_matrix.png` and documents the principal 2–4 class confusion and rare-class support limitation.
+- Slide 2 renders the confusion matrix from the validated `data/model/random_forest_metrics.json` counts and documents the principal 2–4 class confusion and rare-class support limitation.
 - The slide-2 matrix is now generated internally from the validated JSON confusion-matrix counts; the deprecated `--matrix` argument is ignored, so an unrelated external PNG cannot change the deck.
 - Independent OpenXML verification passed: ZIP integrity had no bad entry; exactly two slide XML parts and two presentation slides were present; slide dimensions were 16:9; all required slide-specific text was present; slide 2 had exactly one uncropped image relationship with preserved 4:3 aspect ratio; and replacing the external PNG did not change generated media bytes.
 - Output size: 79,311 bytes.
