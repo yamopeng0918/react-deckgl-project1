@@ -1,6 +1,8 @@
 import argparse
 import csv
 import json
+import os
+import tempfile
 from pathlib import Path
 
 
@@ -23,12 +25,14 @@ def _require_fields(metrics, model_name):
             raise ValueError(f"{model_name} missing required field: {field}")
     if "test" not in metrics["periods"]:
         raise ValueError(f"{model_name} missing required field: periods.test")
+    expected_labels = list(range(8))
+    if metrics["labels"] != expected_labels:
+        raise ValueError(f"{model_name} malformed field: labels")
+    expected_label_keys = {str(label) for label in expected_labels}
     for field in ("support", "recall"):
-        for label in range(8):
-            if str(label) not in metrics[field]:
-                raise ValueError(
-                    f"{model_name} missing required field: {field}.{label}"
-                )
+        actual_keys = set(metrics[field])
+        if actual_keys != expected_label_keys:
+            raise ValueError(f"{model_name} malformed field: {field}")
 
 
 def validate_comparable_metrics(tree_metrics, forest_metrics):
@@ -49,7 +53,11 @@ def validate_comparable_metrics(tree_metrics, forest_metrics):
 
 
 def macro_recall(metrics):
-    recalls = [value for value in metrics["recall"].values() if value is not None]
+    recalls = [
+        metrics["recall"][str(label)]
+        for label in metrics["labels"]
+        if metrics["recall"][str(label)] is not None
+    ]
     if not recalls:
         raise ValueError("recall has no non-null values")
     return sum(recalls) / len(recalls)
@@ -89,10 +97,27 @@ def run_pipeline(tree_metrics_path, forest_metrics_path, output_path):
     rows = build_comparison_rows(tree_metrics, forest_metrics)
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8", newline="") as output:
-        writer = csv.DictWriter(output, fieldnames=FIELDNAMES)
-        writer.writeheader()
-        writer.writerows(rows)
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            newline="",
+            dir=output_path.parent,
+            prefix=f".{output_path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as output:
+            temporary_path = Path(output.name)
+            writer = csv.DictWriter(output, fieldnames=FIELDNAMES)
+            writer.writeheader()
+            writer.writerows(rows)
+            output.flush()
+        os.replace(temporary_path, output_path)
+        temporary_path = None
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
     return rows
 
 

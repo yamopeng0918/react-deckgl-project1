@@ -42,6 +42,18 @@ CANDIDATE_PARAMETERS = [
 ]
 
 
+def selection_rank_key(candidate):
+    macro_recall, accuracy, parameters = candidate
+    depth = parameters["max_depth"]
+    return (
+        macro_recall,
+        accuracy,
+        -parameters["n_estimators"],
+        -(depth if depth is not None else 10_000),
+        parameters["min_samples_leaf"],
+    )
+
+
 def select_model(train_rows):
     if not train_rows:
         raise ValueError("No usable training rows")
@@ -76,13 +88,7 @@ def select_model(train_rows):
 
     best_recall, best_accuracy, best_parameters = max(
         candidates,
-        key=lambda item: (
-            item[0],
-            item[1],
-            -item[2]["n_estimators"],
-            -(item[2]["max_depth"] if item[2]["max_depth"] is not None else 10_000),
-            item[2]["min_samples_leaf"],
-        ),
+        key=selection_rank_key,
     )
     final_model = RandomForestClassifier(**best_parameters)
     all_x, all_y = features_and_targets(ordered_rows)

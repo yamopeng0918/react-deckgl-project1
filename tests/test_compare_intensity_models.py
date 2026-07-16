@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from scripts.compare_intensity_models import (
     build_comparison_rows,
@@ -68,6 +69,26 @@ class ModelComparisonTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "random_forest missing required field: accuracy"):
             validate_comparable_metrics(sample_metrics(), forest)
+
+    def test_rejects_malformed_declared_labels_even_when_models_match(self):
+        tree = sample_metrics()
+        forest = sample_metrics()
+        tree["labels"] = list(range(7))
+        forest["labels"] = list(range(7))
+
+        with self.assertRaisesRegex(ValueError, "labels"):
+            validate_comparable_metrics(tree, forest)
+
+    def test_rejects_extra_recall_or_support_label_keys(self):
+        for field in ("recall", "support"):
+            with self.subTest(field=field):
+                tree = sample_metrics()
+                forest = sample_metrics()
+                tree[field]["8"] = 0
+                forest[field]["8"] = 0
+
+                with self.assertRaisesRegex(ValueError, field):
+                    validate_comparable_metrics(tree, forest)
 
     def test_pipeline_writes_exact_headers_and_values_and_preserves_output_on_invalid_input(self):
         tree = sample_metrics(accuracy=0.25)
@@ -156,6 +177,28 @@ class ModelComparisonTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "test_rows"):
                 run_pipeline(tree_path, forest_path, output_path)
             self.assertFalse(output_path.exists())
+
+    def test_write_failure_preserves_existing_output_and_removes_temporary_file(self):
+        tree = sample_metrics()
+        forest = sample_metrics()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            tree_path = root / "tree.json"
+            forest_path = root / "forest.json"
+            output_path = root / "model_comparison.csv"
+            original = b"existing,comparison\r\nkeep,this\r\n"
+            tree_path.write_text(json.dumps(tree), encoding="utf-8")
+            forest_path.write_text(json.dumps(forest), encoding="utf-8")
+            output_path.write_bytes(original)
+
+            with mock.patch.object(
+                csv.DictWriter, "writerows", side_effect=OSError("forced write failure")
+            ):
+                with self.assertRaisesRegex(OSError, "forced write failure"):
+                    run_pipeline(tree_path, forest_path, output_path)
+
+            self.assertEqual(output_path.read_bytes(), original)
+            self.assertEqual(list(root.glob(f".{output_path.name}.*.tmp")), [])
 
     def test_load_failure_identifies_metrics_path(self):
         missing = Path("missing-model-metrics.json")

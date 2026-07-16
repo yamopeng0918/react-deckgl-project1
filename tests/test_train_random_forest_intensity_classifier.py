@@ -13,6 +13,7 @@ from scripts.intensity_model_common import evaluate_model, load_model_rows, spli
 
 from scripts.train_random_forest_intensity_classifier import (
     CANDIDATE_PARAMETERS,
+    selection_rank_key,
     run_pipeline,
     select_model,
 )
@@ -58,6 +59,22 @@ def selection_rows():
 
 
 class RandomForestSelectionTest(unittest.TestCase):
+    def test_forced_tie_prefers_fewer_trees_shallower_finite_depth_and_larger_leaf(self):
+        tied = [
+            (0.5, 0.6, {"n_estimators": 500, "max_depth": None, "min_samples_leaf": 1}),
+            (0.5, 0.6, {"n_estimators": 200, "max_depth": None, "min_samples_leaf": 5}),
+            (0.5, 0.6, {"n_estimators": 200, "max_depth": 20, "min_samples_leaf": 5}),
+            (0.5, 0.6, {"n_estimators": 200, "max_depth": 12, "min_samples_leaf": 3}),
+            (0.5, 0.6, {"n_estimators": 200, "max_depth": 12, "min_samples_leaf": 5}),
+        ]
+
+        winner = max(tied, key=selection_rank_key)
+
+        self.assertEqual(
+            winner[2],
+            {"n_estimators": 200, "max_depth": 12, "min_samples_leaf": 5},
+        )
+
     def test_candidate_grid_contains_exactly_the_approved_parameters(self):
         expected = [
             {
