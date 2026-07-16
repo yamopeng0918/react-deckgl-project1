@@ -86,6 +86,6 @@
 
 - [x] Add the rerunnable random-forest results PowerPoint generator.
 - [x] Generate the real two-slide `data/model/random-forest-results.pptx` output.
-- [x] Embed the exact `random_forest_confusion_matrix.png` bytes on slide 2.
-- [x] Independently validate ZIP integrity, two-slide structure, 16:9 dimensions, required text, slide-2 image relationship, and embedded media bytes.
+- [x] Render and embed the slide-2 confusion matrix directly from the validated metrics JSON.
+- [x] Independently validate ZIP integrity, two-slide structure, 16:9 dimensions, required text, slide-2 image relationship, generated media geometry, and independence from the legacy external PNG.
 - [x] Document the exact rerun command, output path, measured results, artifact hash, and verification evidence.

@@ -19,14 +19,21 @@ from scripts.create_random_forest_results_powerpoint import (
 
 def valid_metrics():
     support = [1, 289, 1278, 910, 538, 19, 4, 0]
-    matrix = [[0] * 8 for _ in range(8)]
-    for label, count in enumerate(support):
-        matrix[label][label] = count
+    matrix = [
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 56, 162, 58, 13, 0, 0, 0],
+        [0, 52, 552, 487, 183, 4, 0, 0],
+        [0, 6, 142, 362, 367, 33, 0, 0],
+        [0, 0, 16, 53, 349, 118, 2, 0],
+        [0, 0, 0, 0, 6, 13, 0, 0],
+        [0, 0, 0, 0, 1, 1, 2, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+    ]
     return {
-        "accuracy": 0.4389601843,
+        "accuracy": 1334 / 3039,
         "labels": list(range(8)),
         "support": {str(i): value for i, value in enumerate(support)},
-        "recall": {str(i): value for i, value in enumerate([0.0, 0.1938, 0.4319, 0.3978, 0.6487, 0.6842, 0.5, None])},
+        "recall": {str(i): value for i, value in enumerate([0.0, 56/289, 552/1278, 362/910, 349/538, 13/19, 0.5, None])},
         "confusion_matrix": matrix,
         "periods": {"train": [1995, 2023], "test": [2024, 2026]},
         "train_rows": 13617,
@@ -85,7 +92,7 @@ class RandomForestResultsPowerPointTest(unittest.TestCase):
             "3,039",
             "n_estimators=200",
             "max_features=sqrt",
-            "強度 7：N/A（support 0）",
+            "震度 7：N/A（support 0）",
             "稀有類別",
             "分類，不是地震預測",
             "混淆矩陣",
@@ -114,7 +121,7 @@ class RandomForestResultsPowerPointTest(unittest.TestCase):
         deck = Presentation(self.output_path)
         texts = ["\n".join(shape.text for shape in slide.shapes if hasattr(shape, "text")) for slide in deck.slides]
         self.assertIn("Accuracy", texts[0])
-        self.assertIn("強度 7：N/A（support 0）", texts[0])
+        self.assertIn("震度 7：N/A（support 0）", texts[0])
         self.assertNotIn("2–4 級相鄰混淆", texts[0])
         self.assertIn("2–4 級相鄰混淆", texts[1])
         self.assertIn("實際類別（縱軸）", texts[1])
@@ -137,11 +144,11 @@ class RandomForestResultsPowerPointTest(unittest.TestCase):
         for color in expected:
             self.assertIn(color.encode(), xml)
 
-    def test_embeds_exact_uncropped_aspect_preserved_source_png(self):
+    def test_embeds_generated_uncropped_aspect_preserved_matrix_png(self):
         create_random_forest_results_powerpoint(self.metrics_path, self.matrix_path, self.output_path)
         deck = Presentation(self.output_path)
         picture = next(shape for shape in deck.slides[1].shapes if shape.shape_type == MSO_SHAPE_TYPE.PICTURE)
-        self.assertEqual(picture.image.blob, self.matrix_path.read_bytes())
+        self.assertNotEqual(picture.image.blob, self.matrix_path.read_bytes())
         self.assertEqual((picture.crop_left, picture.crop_right, picture.crop_top, picture.crop_bottom), (0, 0, 0, 0))
         self.assertAlmostEqual(picture.width / picture.height, 1200 / 900, places=4)
 
@@ -172,16 +179,15 @@ class RandomForestResultsPowerPointTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "row 2.*support"):
             load_and_validate_metrics(self.metrics_path)
 
-    def test_rejects_missing_png_before_altering_output(self):
-        self.output_path.write_bytes(b"existing")
-        self.matrix_path.unlink()
-
-        with self.assertRaisesRegex(FileNotFoundError, "confusion matrix PNG"):
-            create_random_forest_results_powerpoint(
-                self.metrics_path, self.matrix_path, self.output_path
-            )
-
-        self.assertEqual(self.output_path.read_bytes(), b"existing")
+    def test_external_png_cannot_change_embedded_matrix(self):
+        first_output = self.root / "first.pptx"
+        second_output = self.root / "second.pptx"
+        create_random_forest_results_powerpoint(self.metrics_path, self.matrix_path, first_output)
+        Image.new("RGB", (240, 80), "red").save(self.matrix_path)
+        create_random_forest_results_powerpoint(self.metrics_path, self.matrix_path, second_output)
+        first = next(s for s in Presentation(first_output).slides[1].shapes if s.shape_type == MSO_SHAPE_TYPE.PICTURE)
+        second = next(s for s in Presentation(second_output).slides[1].shapes if s.shape_type == MSO_SHAPE_TYPE.PICTURE)
+        self.assertEqual(first.image.blob, second.image.blob)
 
     def test_save_failure_preserves_existing_output_and_removes_temporary_file(self):
         self.output_path.write_bytes(b"existing deck")
@@ -253,15 +259,18 @@ class RandomForestResultsPowerPointTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, message):
                     load_and_validate_metrics(self.metrics_path)
 
-    def test_rejects_unreadable_and_non_png_images(self):
-        for name, payload in (("unreadable", b"not an image"), ("jpeg", None)):
+    def test_rejects_recall_and_accuracy_that_disagree_with_matrix(self):
+        cases = (
+            ("recall", lambda m: m["recall"].__setitem__("2", 0.9), "recall 2"),
+            ("accuracy", lambda m: m.__setitem__("accuracy", 0.9), "accuracy"),
+        )
+        for name, mutate, message in cases:
             with self.subTest(name=name):
-                if payload is None:
-                    Image.new("RGB", (10, 10)).save(self.matrix_path, format="JPEG")
-                else:
-                    self.matrix_path.write_bytes(payload)
-                with self.assertRaisesRegex(ValueError, "PNG"):
-                    create_random_forest_results_powerpoint(self.metrics_path, self.matrix_path, self.output_path)
+                metrics = valid_metrics(); mutate(metrics); self._write_metrics(metrics)
+                with patch("scripts.create_random_forest_results_powerpoint._build_deck") as build:
+                    with self.assertRaisesRegex(ValueError, message):
+                        create_random_forest_results_powerpoint(self.metrics_path, self.matrix_path, self.output_path)
+                    build.assert_not_called()
 
     def test_corrupt_generated_package_preserves_output_and_cleans_temp(self):
         self.output_path.write_bytes(b"existing")

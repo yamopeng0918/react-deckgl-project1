@@ -1085,6 +1085,7 @@ Completed so far:
 - Slide 1 records chronological test accuracy 43.90% and macro recall 40.81%.
 - Per-class recall/support shown in the deck: intensity 0 = 0.0%/1; 1 = 19.4%/289; 2 = 43.2%/1,278; 3 = 39.8%/910; 4 = 64.9%/538; 5 = 68.4%/19; 6 = 50.0%/4; 7 = N/A/0.
 - Slide 2 embeds `data/model/random_forest_confusion_matrix.png` and documents the principal 2–4 class confusion and rare-class support limitation.
-- Independent OpenXML verification passed: ZIP integrity had no bad entry; exactly two slide XML parts and two presentation slides were present; slide dimensions were 16:9; all required slide-specific text was present; slide 2 had exactly one image relationship; and the embedded media bytes exactly matched the source confusion-matrix PNG.
-- Output size: 98,121 bytes.
-- SHA-256: `65786635568AB23C070A40E9084CFDC9724658C01B3C72650CF6B5B27FFEFAEF`.
+- The slide-2 matrix is now generated internally from the validated JSON confusion-matrix counts; the deprecated `--matrix` argument is ignored, so an unrelated external PNG cannot change the deck.
+- Independent OpenXML verification passed: ZIP integrity had no bad entry; exactly two slide XML parts and two presentation slides were present; slide dimensions were 16:9; all required slide-specific text was present; slide 2 had exactly one uncropped image relationship with preserved 4:3 aspect ratio; and replacing the external PNG did not change generated media bytes.
+- Output size: 79,311 bytes.
+- SHA-256: `6EE135805EECD82E1283F08DBBF43D0F50B8A06DBF483449DCCB2EA60B5D46F4`.
