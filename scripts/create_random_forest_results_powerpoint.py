@@ -56,6 +56,17 @@ def load_and_validate_metrics(metrics_path):
     for label, value in metrics["support"].items():
         if not _is_integer(value) or value < 0:
             raise ValueError(f"support {label} must be a finite non-negative integer")
+    non_null_recalls = 0
+    for label in expected_keys:
+        recall = metrics["recall"][label]
+        support = metrics["support"][label]
+        if support > 0 and recall is None:
+            raise ValueError(f"recall {label} must be numeric when support is positive")
+        if support == 0 and recall is not None:
+            raise ValueError(f"recall {label} must be None when support is zero")
+        non_null_recalls += recall is not None
+    if non_null_recalls == 0:
+        raise ValueError("at least one non-null recall is required")
     matrix = metrics.get("confusion_matrix")
     if not isinstance(matrix, list) or len(matrix) != 8 or any(
         not isinstance(row, list) or len(row) != 8 for row in matrix
@@ -89,6 +100,30 @@ def load_and_validate_metrics(metrics_path):
     if not isinstance(parameters, dict) or not PARAMETER_KEYS.issubset(parameters):
         missing = sorted(PARAMETER_KEYS - set(parameters)) if isinstance(parameters, dict) else sorted(PARAMETER_KEYS)
         raise ValueError(f"selected_parameters must be a dict containing required keys; missing: {missing}")
+    if not _is_integer(parameters["n_estimators"]) or parameters["n_estimators"] <= 0:
+        raise ValueError("n_estimators must be a positive integer")
+    max_depth = parameters["max_depth"]
+    if max_depth is not None and (not _is_integer(max_depth) or max_depth <= 0):
+        raise ValueError("max_depth must be None or a positive integer")
+    if not _is_integer(parameters["min_samples_leaf"]) or parameters["min_samples_leaf"] <= 0:
+        raise ValueError("min_samples_leaf must be a positive integer")
+    if parameters["max_features"] != "sqrt":
+        raise ValueError("max_features must be exactly 'sqrt'")
+    if parameters["class_weight"] != "balanced_subsample":
+        raise ValueError("class_weight must be exactly 'balanced_subsample'")
+    if not _is_integer(parameters["random_state"]) or parameters["random_state"] != 42:
+        raise ValueError("random_state must be the integer 42")
+    start, end = parameters["validation_start_year"], parameters["validation_end_year"]
+    if not _is_integer(start):
+        raise ValueError("validation_start_year must be an integer")
+    if not _is_integer(end):
+        raise ValueError("validation_end_year must be an integer")
+    if start > end:
+        raise ValueError("validation_start_year must not exceed validation_end_year")
+    for field in ("validation_macro_recall", "validation_accuracy"):
+        value = parameters[field]
+        if not _is_finite_number(value) or not 0 <= value <= 1:
+            raise ValueError(f"{field} must be a finite number from 0 through 1")
     return metrics
 
 

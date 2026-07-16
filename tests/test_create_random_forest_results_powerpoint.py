@@ -281,6 +281,55 @@ class RandomForestResultsPowerPointTest(unittest.TestCase):
         self.assertEqual(self.output_path.read_bytes(), b"existing")
         self.assertEqual(list(self.root.glob(".results-*.pptx")), [])
 
+    def test_rejects_recall_support_semantic_inconsistency_before_rendering(self):
+        def make_all_recalls_null(metrics):
+            metrics["recall"] = {str(i): None for i in range(8)}
+            metrics["support"] = {str(i): 0 for i in range(8)}
+            metrics["confusion_matrix"] = [[0] * 8 for _ in range(8)]
+
+        cases = (
+            ("positive support with null recall", lambda m: m["recall"].__setitem__("1", None)),
+            ("zero support with numeric recall", lambda m: m["recall"].__setitem__("7", 0.0)),
+            ("all recalls null", make_all_recalls_null),
+        )
+        for name, mutate in cases:
+            with self.subTest(name=name):
+                metrics = valid_metrics(); mutate(metrics); self._write_metrics(metrics)
+                with patch("scripts.create_random_forest_results_powerpoint._build_deck") as build:
+                    with self.assertRaisesRegex(ValueError, "recall.*support|non-null recall"):
+                        create_random_forest_results_powerpoint(self.metrics_path, self.matrix_path, self.output_path)
+                    build.assert_not_called()
+
+    def test_rejects_invalid_selected_parameter_values(self):
+        cases = (
+            ("n-estimators-bool", "n_estimators", True),
+            ("n-estimators-negative", "n_estimators", -1),
+            ("max-depth-bool", "max_depth", True),
+            ("max-depth-negative", "max_depth", -1),
+            ("min-leaf-container", "min_samples_leaf", []),
+            ("min-leaf-zero", "min_samples_leaf", 0),
+            ("max-features", "max_features", "log2"),
+            ("class-weight", "class_weight", "balanced"),
+            ("random-state-bool", "random_state", True),
+            ("random-state-wrong", "random_state", 7),
+            ("validation-start-bool", "validation_start_year", True),
+            ("validation-macro-nonfinite", "validation_macro_recall", math.nan),
+            ("validation-accuracy-bool", "validation_accuracy", True),
+            ("validation-accuracy-range", "validation_accuracy", 1.1),
+        )
+        for name, key, value in cases:
+            with self.subTest(name=name):
+                metrics = valid_metrics(); metrics["selected_parameters"][key] = value; self._write_metrics(metrics)
+                with self.assertRaisesRegex(ValueError, key):
+                    load_and_validate_metrics(self.metrics_path)
+
+        metrics = valid_metrics()
+        metrics["selected_parameters"]["validation_start_year"] = 2024
+        metrics["selected_parameters"]["validation_end_year"] = 2023
+        self._write_metrics(metrics)
+        with self.assertRaisesRegex(ValueError, "validation_start_year.*validation_end_year"):
+            load_and_validate_metrics(self.metrics_path)
+
 
 if __name__ == "__main__":
     unittest.main()
