@@ -64,6 +64,15 @@
 - [x] Add automated model and artifact tests.
 - [x] Document the rerun command and rare-class limitations.
 
+## Random-Forest Model Comparison
+
+- [x] Add a rerunnable random-forest maximum-intensity classification pipeline using the common six-feature data preparation.
+- [x] Select hyperparameters with chronological 2021–2023 validation data kept inside the 1995–2023 training period.
+- [x] Generate random-forest metrics, class report, labeled confusion-matrix CSV/PNG, and a local ignored fitted model.
+- [x] Compare the decision tree and random forest on the identical 2024–2026 chronological test basis.
+- [x] Record measured validation/test results, per-class recall/support, and the honest rare-class limitation in project documentation.
+- [x] Rerun both model pipelines, comparison, result-slide generation, Python/Vitest suites, production build, and PowerPoint package checks.
+
 ## Final Closing Report Deliverables
 
 - [x] Update closing report page 4 with measured model results.

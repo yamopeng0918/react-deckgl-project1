@@ -194,7 +194,7 @@ Deployment source hygiene:
 - Do not commit local logs or Python `__pycache__` files.
 - `public/data/earthquakes.json` is the frontend data file that must be committed when the processed dataset changes.
 
-## Maximum-Intensity Decision Tree
+## Maximum-Intensity Model Comparison
 
 Install the Python model dependencies:
 
@@ -202,22 +202,32 @@ Install the Python model dependencies:
 python -m pip install -r requirements-model.txt
 ```
 
-Train and evaluate the classifier with the current processed dataset:
+Train and evaluate each classifier independently with the current processed dataset, then rebuild the common comparison report:
 
 ```powershell
 python scripts/train_intensity_classifier.py
+python scripts/train_random_forest_intensity_classifier.py
+python scripts/compare_intensity_models.py
 ```
 
-The model normalizes `5弱` / `5強` to class `5` and `6弱` / `6強` to class `6`. It trains on 1995–2023 records and evaluates only on 2024–2026 records. Features are magnitude, depth, longitude, latitude, event month, and event hour.
+Both pipelines normalize `5弱` / `5強` to class `5` and `6弱` / `6強` to class `6`. They use the same six features—magnitude, depth, longitude, latitude, event month, and event hour—and the same chronological design: 13,617 training records from 1995–2023 and 3,039 test records from 2024–2026. Of 16,691 input records, 35 with invalid or missing targets are excluded. Model selection uses only 2021–2023 validation data within the training period, so the 2024–2026 test period remains held out.
 
 Generated reports are written to `data/model/`:
 
-- `decision_tree_metrics.json`
-- `decision_tree_class_report.csv`
-- `decision_tree_confusion_matrix.csv`
-- `decision_tree_confusion_matrix.png`
+- Decision tree: `decision_tree_metrics.json`, `decision_tree_class_report.csv`, `decision_tree_confusion_matrix.csv`, and `decision_tree_confusion_matrix.png`.
+- Random forest: `random_forest_metrics.json`, `random_forest_class_report.csv`, `random_forest_confusion_matrix.csv`, and `random_forest_confusion_matrix.png`.
+- Shared comparison: `model_comparison.csv`.
 
-The fitted `decision_tree_model.joblib` is generated locally and ignored by Git. The confusion-matrix rows are actual classes and columns are predicted classes.
+The fitted `decision_tree_model.joblib` and `random_forest_model.joblib` files are generated locally and ignored by Git. Confusion-matrix rows are actual classes and columns are predicted classes.
+
+Measured chronological test results:
+
+- Decision tree: accuracy 0.2833168806; macro recall 0.3043045023.
+- Random forest: accuracy 0.4389601843; macro recall 0.4080583025.
+
+The selected random forest uses `n_estimators=200`, `max_depth=12`, `min_samples_leaf=1`, `max_features=sqrt`, `class_weight=balanced_subsample`, and `random_state=42`. Its 2021–2023 validation macro recall is 0.4206442216 and validation accuracy is 0.4582869855. On the chronological test set, recall/support by intensity is: 0 = 0.0000/1, 1 = 0.1938/289, 2 = 0.4319/1,278, 3 = 0.3978/910, 4 = 0.6487/538, 5 = 0.6842/19, 6 = 0.5000/4, and 7 = unavailable/0.
+
+The random forest leads the decision tree on both chronological test macro recall and accuracy. This is a maximum-intensity classification comparison, not earthquake forecasting; estimates for rare classes remain unstable because the test set contains only one intensity-0 event, four intensity-6 events, and no intensity-7 events.
 
 ## Known Limitations
 
@@ -225,4 +235,4 @@ The fitted `decision_tree_model.joblib` is generated locally and ignored by Git.
 - Earthquake data and deck.gl layers are local after data processing.
 - Vite build reports large chunk warnings because deck.gl and MapLibre are large dependencies; this is acceptable for the local MVP.
 - Heatmap and point-layer readability should still be checked manually in the browser.
-- The decision-tree result is a baseline classification model, not an earthquake prediction system. Chronological test performance is limited, and rare intensity classes have too few or no recent examples for stable recall estimates.
+- The model results describe classification from recorded event attributes, not earthquake forecasting. Chronological test performance remains limited, and rare intensity classes have too few or no recent examples for stable recall estimates.

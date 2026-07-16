@@ -1,0 +1,155 @@
+{
+  "accuracy": 0.4389601842711418,
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "support": {
+    "0": 1,
+    "1": 289,
+    "2": 1278,
+    "3": 910,
+    "4": 538,
+    "5": 19,
+    "6": 4,
+    "7": 0
+  },
+  "recall": {
+    "0": 0.0,
+    "1": 0.19377162629757785,
+    "2": 0.431924882629108,
+    "3": 0.3978021978021978,
+    "4": 0.6486988847583643,
+    "5": 0.6842105263157895,
+    "6": 0.5,
+    "7": null
+  },
+  "confusion_matrix": [
+    [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      56,
+      162,
+      58,
+      13,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      52,
+      552,
+      487,
+      183,
+      4,
+      0,
+      0
+    ],
+    [
+      0,
+      6,
+      142,
+      362,
+      367,
+      33,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      16,
+      53,
+      349,
+      118,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      6,
+      13,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "periods": {
+    "train": [
+      1995,
+      2023
+    ],
+    "test": [
+      2024,
+      2026
+    ]
+  },
+  "input_summary": {
+    "input_rows": 16691,
+    "usable_rows": 16656,
+    "excluded_invalid_target": 35,
+    "excluded_invalid_features": 0,
+    "excluded_year_mismatch": 0
+  },
+  "train_rows": 13617,
+  "test_rows": 3039,
+  "selected_parameters": {
+    "n_estimators": 200,
+    "max_depth": 12,
+    "min_samples_leaf": 1,
+    "max_features": "sqrt",
+    "class_weight": "balanced_subsample",
+    "random_state": 42,
+    "validation_start_year": 2021,
+    "validation_end_year": 2023,
+    "validation_macro_recall": 0.4206442216388069,
+    "validation_accuracy": 0.4582869855394883
+  },
+  "feature_names": [
+    "magnitude",
+    "depth_km",
+    "longitude",
+    "latitude",
+    "month",
+    "hour"
+  ],
+  "model_type": "random_forest"
+}

@@ -1058,3 +1058,23 @@ Completed so far:
 - Expanded the local-only rule from the final PowerPoint to the entire `hyperframes/closing-report/` directory at the user's request.
 - Removed the directory's HTML, local GSAP asset, and linked result PowerPoint from Git tracking without deleting any local files.
 - Closing-report source pages, snapshots, videos, and PowerPoint deliverables now remain only in the local workspace.
+
+## 2026-07-16 Random-Forest Model Comparison
+
+- Added a separate rerunnable random-forest pipeline while retaining the decision tree as the baseline. Both pipelines share the same target normalization, six features (magnitude, depth, longitude, latitude, month, and hour), chronological split, and artifact conventions.
+- Common data basis: 16,691 input records; 16,656 usable records; 35 invalid or missing targets excluded; training 1995–2023 with 13,617 records; held-out testing 2024–2026 with 3,039 records.
+- Selected the random forest using 2021–2023 validation data contained entirely within the training period. The exact 18-candidate grid combined `n_estimators ∈ {200, 500}`, `max_depth ∈ {12, 20, None}`, and `min_samples_leaf ∈ {1, 3, 5}`, with `max_features=sqrt`, `class_weight=balanced_subsample`, and `random_state=42` fixed. The winner was `n_estimators=200`, `max_depth=12`, and `min_samples_leaf=1` with those fixed settings.
+- Random-forest validation results: macro recall 0.4206442216 and accuracy 0.4582869855.
+- Chronological test comparison:
+  - decision tree: accuracy 0.2833168806; macro recall 0.3043045023;
+  - random forest: accuracy 0.4389601843; macro recall 0.4080583025.
+- Random-forest recall/support: intensity 0 = 0.0000/1; 1 = 0.1938/289; 2 = 0.4319/1,278; 3 = 0.3978/910; 4 = 0.6487/538; 5 = 0.6842/19; 6 = 0.5000/4; 7 = unavailable/0.
+- The random forest leads on chronological test macro recall and accuracy. This remains maximum-intensity classification, not earthquake forecasting; rare-class estimates are unstable with only one intensity-0 event, four intensity-6 events, and no intensity-7 events in the test period.
+- Generated tracked artifacts: `random_forest_metrics.json`, `random_forest_class_report.csv`, `random_forest_confusion_matrix.csv`, `random_forest_confusion_matrix.png`, `model_comparison.csv`, and the refreshed `decision-tree-results-review.pptx`. The fitted random-forest joblib and closing-report linked copy remain ignored/local-only.
+- Reproducible commands:
+  - `python scripts/train_intensity_classifier.py`
+  - `python scripts/train_random_forest_intensity_classifier.py`
+  - `python scripts/compare_intensity_models.py`
+  - `python scripts/create_decision_tree_results_slide.py`
+- During implementation, direct model CLI execution exposed an import-path regression; the shared import was made robust for direct script execution and covered by tests. Comparison tie handling was also corrected and regression-tested.
+- Final verification evidence is recorded in `.superpowers/sdd/task-5-report.md`: all four real commands, independent JSON/CSV assertions, the full Python and Vitest suites, production build, focused PowerPoint package tests, and Git scope checks.
