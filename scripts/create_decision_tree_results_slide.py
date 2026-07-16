@@ -90,11 +90,20 @@ def _comparison_sentence(comparison):
     forest = comparison["random_forest"]
     tree_macro, forest_macro = float(tree["macro_recall"]), float(forest["macro_recall"])
     tree_accuracy, forest_accuracy = float(tree["accuracy"]), float(forest["accuracy"])
-    if math.isclose(tree_macro, forest_macro) and math.isclose(tree_accuracy, forest_accuracy):
-        return "比較結論｜測試 Macro Recall 與 Accuracy 皆相同，兩者沒有明確領先。"
-    leader = "隨機森林" if (forest_macro, forest_accuracy) > (tree_macro, tree_accuracy) else "決策樹"
-    both = (forest_macro > tree_macro and forest_accuracy > tree_accuracy) or (tree_macro > forest_macro and tree_accuracy > forest_accuracy)
-    return f"比較結論｜{leader}在時間外推測試的 Macro Recall 優先領先，且 Accuracy 亦{'領先' if both else '作為次要比較指標'}。"
+    macro_tied = math.isclose(tree_macro, forest_macro)
+    accuracy_tied = math.isclose(tree_accuracy, forest_accuracy)
+    if macro_tied and accuracy_tied:
+        return "比較結論｜測試 Macro Recall 與 Accuracy 皆平手，兩者沒有明確領先。"
+    if macro_tied:
+        accuracy_leader = "隨機森林" if forest_accuracy > tree_accuracy else "決策樹"
+        return f"比較結論｜測試 Macro Recall 平手；{accuracy_leader}在 Accuracy 領先。"
+    macro_leader = "隨機森林" if forest_macro > tree_macro else "決策樹"
+    if accuracy_tied:
+        accuracy_comparison = "Accuracy 平手"
+    else:
+        accuracy_leader = "隨機森林" if forest_accuracy > tree_accuracy else "決策樹"
+        accuracy_comparison = f"Accuracy 亦由{accuracy_leader}領先"
+    return f"比較結論｜{macro_leader}在時間外推測試的 Macro Recall 領先；{accuracy_comparison}。"
 
 
 def _model_card(slide, x, title, metrics, comparison, accent):
