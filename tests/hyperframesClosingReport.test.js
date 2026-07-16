@@ -42,7 +42,7 @@ describe('closing report HyperFrames composition', () => {
 
     expect(html).toContain('提案目標逐項對照');
     expect(html).toContain('整理乾淨的結構化資料集');
-    expect(html).toContain('最大震度決策樹分類模型');
+    expect(html).toContain('最大震度決策樹與隨機森林分類模型');
     expect(html).toContain('準確率、各等級命中率與混淆矩陣');
     expect(html).toContain('地圖與圖表輔助呈現');
     expect(html).toContain('06/17');
@@ -55,11 +55,16 @@ describe('closing report HyperFrames composition', () => {
     expect(html).toContain('建立模型＋效能評估＋結果整理');
   });
 
-  test('updates proposal results with measured model outcomes and a working deck link', () => {
+  test('updates proposal results with a common chronological two-model comparison and a working deck link', () => {
     const html = readComposition();
 
     expect(html).toContain('原提案核心成果已補齊');
-    expect(html).toContain('時間外推測試準確率為 28.33%');
+    expect(html).toContain('決策樹');
+    expect(html).toContain('隨機森林');
+    expect(html).toContain('共同時間外推評估');
+    expect(html).toContain('隨機森林在測試 Macro Recall 與 Accuracy 皆領先決策樹');
+    expect(html).toContain('40.81%');
+    expect(html).toContain('43.90%');
     expect(html).toContain('震度 7 沒有測試樣本');
     expect(html).toContain('href="./decision-tree-results.pptx"');
     expect(existsSync(decisionTreeDeckPath)).toBe(true);
@@ -69,7 +74,7 @@ describe('closing report HyperFrames composition', () => {
     const html = readComposition();
 
     expect(html).toContain('更新最終完成狀況');
-    expect(html).toContain('決策樹分類模型、時間外推效能評估、混淆矩陣與結果簡報皆已完成');
+    expect(html).toContain('決策樹與隨機森林分類模型、共同時間外推效能評估與結果簡報皆已完成');
     expect(html).not.toContain('模型與效能評估列為後續延伸');
   });
 
