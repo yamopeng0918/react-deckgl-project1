@@ -7,6 +7,8 @@ from pathlib import Path
 
 import joblib
 
+from scripts import intensity_model_common
+import scripts.train_intensity_classifier as decision_tree
 from scripts.train_intensity_classifier import (
     evaluate_model,
     load_model_rows,
@@ -15,6 +17,23 @@ from scripts.train_intensity_classifier import (
     select_model,
     split_rows,
 )
+
+
+class SharedModelCoreTest(unittest.TestCase):
+    def test_decision_tree_reexports_shared_model_functions(self):
+        for name in (
+            "normalize_intensity",
+            "load_model_rows",
+            "split_rows",
+            "evaluate_model",
+        ):
+            self.assertIs(getattr(decision_tree, name), getattr(intensity_model_common, name))
+
+    def test_shared_feature_names_are_stable(self):
+        self.assertEqual(
+            intensity_model_common.FEATURE_NAMES,
+            ["magnitude", "depth_km", "longitude", "latitude", "month", "hour"],
+        )
 
 
 FIELDNAMES = [
