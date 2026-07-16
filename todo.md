@@ -81,3 +81,11 @@
 - [x] Re-render the 96-second closing report MP4.
 - [x] Rebuild the closing report as a 14-slide PowerPoint.
 - [x] Verify the final video and PowerPoint artifacts.
+
+## Random-Forest Results PowerPoint
+
+- [x] Add the rerunnable random-forest results PowerPoint generator.
+- [x] Generate the real two-slide `data/model/random-forest-results.pptx` output.
+- [x] Embed the exact `random_forest_confusion_matrix.png` bytes on slide 2.
+- [x] Independently validate ZIP integrity, two-slide structure, 16:9 dimensions, required text, slide-2 image relationship, and embedded media bytes.
+- [x] Document the exact rerun command, output path, measured results, artifact hash, and verification evidence.

@@ -1078,3 +1078,13 @@ Completed so far:
   - `python scripts/create_decision_tree_results_slide.py`
 - During implementation, direct model CLI execution exposed an import-path regression; the shared import was made robust for direct script execution and covered by tests. Comparison tie handling was also corrected and regression-tested.
 - Final verification evidence is recorded in `.superpowers/sdd/task-5-report.md`: all four real commands, independent JSON/CSV assertions, the full Python and Vitest suites, production build, focused PowerPoint package tests, and Git scope checks.
+
+## 2026-07-16 Random-Forest Results PowerPoint
+
+- Generated the real two-slide 16:9 result deck at `data/model/random-forest-results.pptx` with `python scripts/create_random_forest_results_powerpoint.py`.
+- Slide 1 records chronological test accuracy 43.90% and macro recall 40.81%.
+- Per-class recall/support shown in the deck: intensity 0 = 0.0%/1; 1 = 19.4%/289; 2 = 43.2%/1,278; 3 = 39.8%/910; 4 = 64.9%/538; 5 = 68.4%/19; 6 = 50.0%/4; 7 = N/A/0.
+- Slide 2 embeds `data/model/random_forest_confusion_matrix.png` and documents the principal 2–4 class confusion and rare-class support limitation.
+- Independent OpenXML verification passed: ZIP integrity had no bad entry; exactly two slide XML parts and two presentation slides were present; slide dimensions were 16:9; all required slide-specific text was present; slide 2 had exactly one image relationship; and the embedded media bytes exactly matched the source confusion-matrix PNG.
+- Output size: 98,121 bytes.
+- SHA-256: `65786635568AB23C070A40E9084CFDC9724658C01B3C72650CF6B5B27FFEFAEF`.

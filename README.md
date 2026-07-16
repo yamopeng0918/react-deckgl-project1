@@ -229,6 +229,22 @@ The selected random forest uses `n_estimators=200`, `max_depth=12`, `min_samples
 
 The random forest leads the decision tree on both chronological test macro recall and accuracy. This is a maximum-intensity classification comparison, not earthquake forecasting; estimates for rare classes remain unstable because the test set contains only one intensity-0 event, four intensity-6 events, and no intensity-7 events.
 
+### Random-Forest Results PowerPoint
+
+Regenerate the two-slide random-forest results deck with the default inputs and output path:
+
+```powershell
+python scripts/create_random_forest_results_powerpoint.py
+```
+
+The generated PowerPoint is written to:
+
+```text
+data/model/random-forest-results.pptx
+```
+
+Slide 1 summarizes the chronological test metrics, per-class recall/support, selected parameters, and rare-class warning. Slide 2 embeds the tracked confusion-matrix PNG and explains the principal 2–4 intensity-class confusion and support limitation.
+
 ## Known Limitations
 
 - Base map tiles use OpenStreetMap and require network access for the background map.
