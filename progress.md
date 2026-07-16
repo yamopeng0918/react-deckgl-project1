@@ -1089,3 +1089,20 @@ Completed so far:
 - Independent OpenXML verification passed: ZIP integrity had no bad entry; exactly two slide XML parts and two presentation slides were present; slide dimensions were 16:9; all required slide-specific text was present; slide 2 had exactly one uncropped image relationship with preserved 4:3 aspect ratio; and replacing the external PNG did not change generated media bytes.
 - Output size: 79,311 bytes.
 - SHA-256: `6EE135805EECD82E1283F08DBBF43D0F50B8A06DBF483449DCCB2EA60B5D46F4`.
+
+## 2026-07-16 Random-Forest Final Close-Out
+
+- Completed the final local close-out for the random-forest comparison and its dedicated two-slide result deck.
+- Final tracked deliverables include the rerunnable random-forest pipeline, metrics JSON, class report CSV, labeled confusion-matrix CSV/PNG, model comparison CSV, PowerPoint generator, automated tests, and `data/model/random-forest-results.pptx`; the fitted joblib model remains ignored/local-only.
+- Chronological 2024–2026 test results remain 43.90% accuracy and 40.81% macro recall, compared with the decision-tree baseline at 28.33% accuracy and 30.43% macro recall.
+- Random-forest recall/support coverage: intensity 0 = 0.0%/1; 1 = 19.4%/289; 2 = 43.2%/1,278; 3 = 39.8%/910; 4 = 64.9%/538; 5 = 68.4%/19; 6 = 50.0%/4; 7 = N/A/0. Rare-class results remain unstable because the test set contains only one intensity-0 event, four intensity-6 events, and no intensity-7 events.
+- The PowerPoint slide-2 confusion matrix is generated internally from the validated `data/model/random_forest_metrics.json` counts. The legacy external PNG argument cannot alter the generated deck media.
+- Rerun the result deck with `python scripts/create_random_forest_results_powerpoint.py`.
+- Final artifact: `data/model/random-forest-results.pptx`, 79,311 bytes, SHA-256 `6EE135805EECD82E1283F08DBBF43D0F50B8A06DBF483449DCCB2EA60B5D46F4`.
+- Fresh final verification passed:
+  - complete Python suite with `ResourceWarning` promoted to an error;
+  - complete Vitest suite;
+  - production build, with only the existing accepted large-chunk warning;
+  - independent PPTX ZIP/OpenXML, two-slide, 16:9, required-metric text, slide-2 title/image, byte-size, and SHA-256 checks;
+  - no unchecked todo items, clean diff checks, and final Git scope limited to this progress record.
+- Final integration remains local-only: local `main` is not pushed to `origin/main`.
