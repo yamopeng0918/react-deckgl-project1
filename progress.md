@@ -1230,3 +1230,23 @@ Completed so far:
   seconds, and did not install HyperFrames or ONNX runtime.
 - The production alias `https://react-deckgl-project1-kappa.vercel.app/`
   returned HTTP 200 with the React application root.
+
+## 2026-07-27 Vercel Maintenance Close-Out
+
+- Closed the Vercel deployment incident after a fresh end-to-end maintenance
+  check.
+- Latest verified production deployment:
+  `react-deckgl-project1-mpei6ty8k-yamopeng.vercel.app`, status Ready.
+- The public production alias
+  `https://react-deckgl-project1-kappa.vercel.app/` returned HTTP 200 and
+  contained the React application root.
+- Fresh close-out verification:
+  - `npm.cmd test -- --run`: 25 test files and 98 tests passed;
+  - `npm.cmd run build`: succeeded;
+  - Vercel deployment inspection: Ready;
+  - production HTTP health check: 200.
+- The only build warning remains the accepted large JavaScript chunk warning
+  from deck.gl and MapLibre.
+- `main` is the integrated branch. The user-owned untracked
+  `決策樹簡報小白解釋.txt` remains intentionally untouched and outside the
+  maintenance commits.

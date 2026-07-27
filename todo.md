@@ -121,3 +121,11 @@
 - [x] Preserve the local video workflow through pinned on-demand npm scripts.
 - [x] Add a regression test for the Vercel dependency boundary.
 - [x] Verify a clean npm install, frontend tests, and production build.
+
+## Maintenance Close-Out
+
+- [x] Recheck the complete frontend test suite after deployment maintenance.
+- [x] Recheck the production build.
+- [x] Confirm the latest Vercel production deployment is Ready.
+- [x] Confirm the public production alias returns HTTP 200.
+- [x] Record the final maintenance state in project documentation.
