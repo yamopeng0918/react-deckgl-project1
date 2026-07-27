@@ -89,3 +89,11 @@
 - [x] Render and embed the slide-2 confusion matrix directly from the validated metrics JSON.
 - [x] Independently validate ZIP integrity, two-slide structure, 16:9 dimensions, required text, slide-2 image relationship, generated media geometry, and independence from the legacy external PNG.
 - [x] Document the exact rerun command, output path, measured results, artifact hash, and verification evidence.
+
+## Random-Forest Three-Level Explainer
+
+- [x] Add a rerunnable one-slide PowerPoint generator for a deterministic representative tree.
+- [x] Generate `data/model/random-forest-three-level-explainer.pptx` from the fitted local random-forest model.
+- [x] Show the selected estimator's real root through depth-two rules and explain that final classification uses all 200 forest votes.
+- [x] Independently validate the PowerPoint package, one-slide 16:9 geometry, displayed rules, generated file size, and SHA-256 checksum.
+- [x] Document the rerun command and final verification evidence.

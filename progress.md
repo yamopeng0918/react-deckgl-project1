@@ -1106,3 +1106,23 @@ Completed so far:
   - independent PPTX ZIP/OpenXML, two-slide, 16:9, required-metric text, slide-2 title/image, byte-size, and SHA-256 checks;
   - no unchecked todo items, clean diff checks, and final Git scope limited to this progress record.
 - Final integration remains local-only: local `main` is not pushed to `origin/main`.
+
+## 2026-07-27 Random-Forest Three-Level Explainer
+
+- Added the reproducible one-slide explanation artifact at
+  `data/model/random-forest-three-level-explainer.pptx`.
+- The generator deterministically selected zero-based estimator index `7` from
+  the fitted 200-tree forest. Its root feature is `magnitude`; the slide shows
+  that estimator's actual root through depth-two rules. Final classification
+  still uses the votes of all 200 trees.
+- Fresh regenerated artifact: 30,024 bytes; SHA-256
+  `6537F00E1C996CD12CFACE862D59478E49864CCF52071EAB00EADF012925E2F5`.
+- Verification commands and results:
+  - `python -W error::ResourceWarning -m unittest discover -s tests -p 'test_*.py' -v`: 68 tests passed.
+  - `npm.cmd test -- --run`: 8 test files and 32 tests passed.
+  - `npm.cmd run build`: succeeded; only the accepted Vite large-chunk warning was emitted.
+  - `python scripts/create_random_forest_three_level_explainer.py`: regenerated the deck successfully.
+- Independent package/model inspection reopened the generated deck with
+  `python-pptx` and ZIP: no corrupt ZIP member, exactly one 16:9 slide, 25
+  shapes within slide bounds, and all seven displayed model-rule strings matched
+  the freshly selected estimator's extracted nodes.

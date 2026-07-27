@@ -245,6 +245,25 @@ data/model/random-forest-results.pptx
 
 Slide 1 summarizes the chronological test metrics, per-class recall/support, selected parameters, and rare-class warning. Slide 2 renders and embeds the confusion matrix directly from the validated metrics JSON (the legacy `--matrix` option is ignored) and explains the principal 2–4 震度類別之間的混淆 and support limitation.
 
+### Random-Forest Three-Level Explainer
+
+Regenerate the one-slide explainer with the fitted local random-forest model:
+
+```powershell
+python scripts/create_random_forest_three_level_explainer.py
+```
+
+The output is:
+
+```text
+data/model/random-forest-three-level-explainer.pptx
+```
+
+The slide shows the real first three levels of a deterministic representative
+tree selected from the fitted forest. It is an explanation of one tree's
+decision rules, not the final classifier by itself: final classification uses
+the votes of all 200 trees in the selected random forest.
+
 ## Known Limitations
 
 - Base map tiles use OpenStreetMap and require network access for the background map.
