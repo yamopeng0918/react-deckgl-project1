@@ -1,10 +1,17 @@
+import tempfile
 import unittest
+import zipfile
+from pathlib import Path
 
+import joblib
+from pptx import Presentation
 from sklearn.ensemble import RandomForestClassifier
 
 from scripts.create_random_forest_three_level_explainer import (
     FEATURE_LABELS,
     FEATURE_NAMES,
+    build_deck,
+    create_random_forest_three_level_explainer,
     extract_three_levels,
     select_representative_tree,
 )
@@ -28,7 +35,7 @@ def fitted_model():
             labels.append(intensity)
 
     model = RandomForestClassifier(
-        n_estimators=9,
+        n_estimators=200,
         max_depth=4,
         random_state=42,
     )
@@ -120,6 +127,90 @@ class RepresentativeTreeValidationTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "six input features"):
             select_representative_tree(model)
+
+
+class RandomForestThreeLevelExplainerPowerPointTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.model = fitted_model()
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.model_path = self.root / "model.joblib"
+        self.output_path = self.root / "explainer.pptx"
+        joblib.dump(self.model, self.model_path)
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    @staticmethod
+    def _slide_text(slide):
+        return "\n".join(
+            shape.text for shape in slide.shapes if hasattr(shape, "text")
+        )
+
+    def test_build_deck_displays_every_extracted_node_value(self):
+        tree_index, tree = select_representative_tree(self.model)
+        nodes = extract_three_levels(
+            tree,
+            FEATURE_NAMES,
+            list(self.model.classes_),
+        )
+
+        deck = build_deck(nodes, tree_index, len(self.model.estimators_))
+
+        self.assertEqual(len(deck.slides), 1)
+        slide_text = self._slide_text(deck.slides[0])
+        for node in nodes:
+            if node["is_leaf"]:
+                expected = (
+                    f"此分支預測震度 {node['dominant_class']}\n"
+                    f"樣本 {node['samples']:,}"
+                )
+            else:
+                expected = (
+                    f"{FEATURE_LABELS[node['feature_name']]} ≤ "
+                    f"{node['threshold']:.2f}？\n"
+                    f"樣本 {node['samples']:,}｜目前偏向震度 "
+                    f"{node['dominant_class']}"
+                )
+            self.assertIn(expected, slide_text)
+
+    def test_creates_valid_one_slide_widescreen_native_shape_deck(self):
+        result = create_random_forest_three_level_explainer(
+            self.model_path,
+            self.output_path,
+        )
+
+        self.assertEqual(result, self.output_path)
+        with zipfile.ZipFile(self.output_path) as package:
+            self.assertIsNone(package.testzip())
+        deck = Presentation(self.output_path)
+        self.assertEqual(len(deck.slides), 1)
+        self.assertAlmostEqual(
+            deck.slide_width / deck.slide_height,
+            16 / 9,
+            places=2,
+        )
+        slide = deck.slides[0]
+        slide_text = self._slide_text(slide)
+        for expected in (
+            "隨機森林如何判斷最大震度？",
+            "是（≤）",
+            "否（>）",
+            "200 棵樹中的一棵",
+            "投票",
+            "不是地震預測",
+        ):
+            self.assertIn(expected, slide_text)
+
+        for shape in slide.shapes:
+            with self.subTest(shape=shape.name):
+                self.assertGreaterEqual(shape.left, 0)
+                self.assertGreaterEqual(shape.top, 0)
+                self.assertLessEqual(shape.left + shape.width, deck.slide_width)
+                self.assertLessEqual(shape.top + shape.height, deck.slide_height)
 
 
 if __name__ == "__main__":
