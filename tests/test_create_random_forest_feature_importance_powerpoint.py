@@ -59,6 +59,15 @@ class FeatureImportanceExtractionTest(unittest.TestCase):
         with self.assertRaisesRegex(FileNotFoundError, "model file not found"):
             load_feature_importances(self.model_path)
 
+    def test_corrupt_model_error_identifies_path_and_preserves_cause(self):
+        self.model_path.write_bytes(b"not a readable joblib model")
+
+        with self.assertRaises(ValueError) as raised:
+            load_feature_importances(self.model_path)
+
+        self.assertIn(str(self.model_path), str(raised.exception))
+        self.assertIsNotNone(raised.exception.__cause__)
+
     def test_rejects_a_model_without_feature_importances(self):
         self._write_model()
 
@@ -144,6 +153,69 @@ class FeatureImportanceInsightTest(unittest.TestCase):
         )
 
         self.assertNotIn("高於單一規模", insights[1])
+
+    def test_uses_displayed_precision_for_spatial_comparison_boundaries(self):
+        cases = (
+            (0.30004, "30.00%", False),
+            (0.30006, "30.01%", True),
+        )
+        for spatial_total, displayed_total, should_say_higher in cases:
+            with self.subTest(spatial_total=spatial_total):
+                insights = build_insights(
+                    (
+                        ("magnitude", 0.30001),
+                        ("depth_km", 0.19999),
+                        ("longitude", 0.15),
+                        ("latitude", spatial_total - 0.15),
+                        ("month", 0.1),
+                        ("hour", 0.1),
+                    )
+                )
+
+                self.assertIn(displayed_total, insights[1])
+                self.assertEqual(
+                    "高於單一規模" in insights[1],
+                    should_say_higher,
+                )
+
+    def test_does_not_claim_a_temporal_signal_when_total_is_zero(self):
+        insights = build_insights(
+            (
+                ("magnitude", 0.4),
+                ("depth_km", 0.2),
+                ("longitude", 0.2),
+                ("latitude", 0.2),
+                ("month", 0.0),
+                ("hour", 0.0),
+            )
+        )
+
+        self.assertIn("合計 0.00%", insights[2])
+        self.assertNotIn("時間訊號存在", insights[2])
+
+    def test_uses_displayed_precision_for_temporal_comparison_boundaries(self):
+        cases = (
+            (0.20004, "20.00%", True),
+            (0.20006, "20.01%", False),
+        )
+        for temporal_total, displayed_total, should_say_not_primary in cases:
+            with self.subTest(temporal_total=temporal_total):
+                insights = build_insights(
+                    (
+                        ("magnitude", 0.20001),
+                        ("depth_km", 0.29999),
+                        ("longitude", 0.15),
+                        ("latitude", 0.15),
+                        ("month", 0.1),
+                        ("hour", temporal_total - 0.1),
+                    )
+                )
+
+                self.assertIn(displayed_total, insights[2])
+                self.assertEqual(
+                    "不是主要依據" in insights[2],
+                    should_say_not_primary,
+                )
 
     def test_uses_neutral_temporal_language_when_temporal_total_is_unusually_high(self):
         insights = build_insights(
@@ -254,6 +326,24 @@ class FeatureImportancePowerPointTest(unittest.TestCase):
                 ).text,
                 FEATURE_LABELS[feature_name],
             )
+
+    def test_percentage_labels_follow_their_associated_bar_ends(self):
+        ranked = rank_feature_importances(CURRENT_IMPORTANCES)
+        deck = build_deck(ranked, build_insights(CURRENT_IMPORTANCES))
+        slide = deck.slides[0]
+
+        end_gaps = []
+        for feature_name, _ in ranked:
+            bar = self._shape(slide, f"importance-bar-{feature_name}")
+            value_label = self._shape(
+                slide,
+                f"importance-value-{feature_name}",
+            )
+            end_gap = value_label.left - (bar.left + bar.width)
+            self.assertGreaterEqual(end_gap, 0)
+            end_gaps.append(end_gap)
+
+        self.assertEqual(len(set(end_gaps)), 1)
 
     def test_all_shapes_stay_inside_slide_and_visible_runs_use_jhenghei(self):
         deck = build_deck(

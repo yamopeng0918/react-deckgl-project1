@@ -1140,10 +1140,17 @@ Completed so far:
 - Spatial features (longitude plus latitude) total 35.86% (`0.35859637`);
   temporal features (month plus hour) total 17.05% (`0.17047197`). These are
   model-reliance scores, not causal effects or earthquake forecasts.
-- Fresh regenerated output: 30,040 bytes; SHA-256
-  `48F85BB3CCAD422B8E25D7A0CCA3F9E8CDA40F8590FCA7F0B3BBB9B36893D7F5`.
+- Final-review hardening now compares insight claims at the same two-decimal
+  precision shown on the slide, uses a no-signal statement for a displayed
+  temporal total of 0.00%, identifies corrupt model paths while preserving the
+  original load error, and anchors every percentage label to its bar end.
+- Fresh regenerated output after final-review fixes: 30,050 bytes; SHA-256
+  `648FA0A6F49B91BDFF489300C759C6447A887322D1CB7D2D7D1726E242D00AAE`.
 - Verification evidence: complete Python and Vitest suites, production build
   with only the accepted large-chunk warning, direct deck regeneration, and
   independent ZIP/OpenXML/model inspection covering its one 16:9 slide, six
   ranked native bars, exact percentages and insights, East Asian font metadata,
   in-bounds shapes, byte size, and SHA-256.
+- Final-review regression verification:
+  - `python -W error::ResourceWarning -m unittest tests.test_create_random_forest_feature_importance_powerpoint -v`: 21 tests passed.
+  - `python -W error::ResourceWarning -m unittest discover -s tests -p 'test_*.py' -v`: 89 tests passed.

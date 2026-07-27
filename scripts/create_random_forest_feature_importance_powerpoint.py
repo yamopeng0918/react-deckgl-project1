@@ -3,6 +3,7 @@ import math
 import os
 import tempfile
 import zipfile
+from decimal import Decimal
 from pathlib import Path
 
 import joblib
@@ -57,7 +58,10 @@ def load_feature_importances(model_path) -> tuple[tuple[str, float], ...]:
     if not model_path.is_file():
         raise FileNotFoundError(f"model file not found: {model_path}")
 
-    model = joblib.load(model_path)
+    try:
+        model = joblib.load(model_path)
+    except Exception as error:
+        raise ValueError(f"could not load model: {model_path}") from error
     raw_importances = getattr(model, "feature_importances_", None)
     if raw_importances is None:
         raise ValueError("Model must expose feature_importances_")
@@ -91,6 +95,11 @@ def rank_feature_importances(importances) -> tuple[tuple[str, float], ...]:
     )
 
 
+def _displayed_percentage(value) -> Decimal:
+    """Return the numeric percentage at the same precision shown on the slide."""
+    return Decimal(f"{value:.2%}".removesuffix("%"))
+
+
 def build_insights(importances) -> tuple[str, str, str]:
     """Build model-derived summary copy that remains accurate as values change."""
     values = dict(importances)
@@ -98,8 +107,11 @@ def build_insights(importances) -> tuple[str, str, str]:
     top_label = FEATURE_LABELS[top_name]
     spatial_total = values["longitude"] + values["latitude"]
     temporal_total = values["month"] + values["hour"]
+    displayed_top = _displayed_percentage(top_value)
+    displayed_spatial = _displayed_percentage(spatial_total)
+    displayed_temporal = _displayed_percentage(temporal_total)
 
-    if spatial_total > top_value:
+    if displayed_spatial > displayed_top:
         spatial_comparison_text = (
             f"經緯度合計 {spatial_total:.2%}，顯示地理位置整體影響高於單一規模"
         )
@@ -109,7 +121,15 @@ def build_insights(importances) -> tuple[str, str, str]:
         )
 
     magnitude_value = values["magnitude"]
-    if temporal_total <= magnitude_value and temporal_total <= spatial_total:
+    displayed_magnitude = _displayed_percentage(magnitude_value)
+    if displayed_temporal == 0:
+        temporal_comparison_text = (
+            f"月份與時刻合計 {temporal_total:.2%}，目前未顯示可解讀的時間訊號"
+        )
+    elif (
+        displayed_temporal <= displayed_magnitude
+        and displayed_temporal <= displayed_spatial
+    ):
         temporal_comparison_text = (
             f"月份與時刻合計 {temporal_total:.2%}，時間訊號存在，但不是主要依據"
         )
@@ -277,6 +297,9 @@ def build_deck(importances, insights) -> Presentation:
 
     baseline_x = 1.70
     maximum_width = 5.85
+    value_label_gap = 0.12
+    value_label_width = 1.07
+    chart_right = 8.85
     row_positions = (1.55, 2.35, 3.15, 3.95, 4.75, 5.55)
     for index, ((feature_name, value), y) in enumerate(
         zip(importances, row_positions)
@@ -307,11 +330,15 @@ def build_deck(importances, insights) -> Presentation:
         bar.fill.fore_color.rgb = BAR_COLORS[index]
         bar.line.color.rgb = BAR_COLORS[index]
 
+        value_label_left = min(
+            baseline_x + bar_width + value_label_gap,
+            chart_right - value_label_width,
+        )
         value_label = _add_text(
             slide,
-            7.68,
+            value_label_left,
             y,
-            1.07,
+            value_label_width,
             0.36,
             f"{value:.2%}",
             size=11,
