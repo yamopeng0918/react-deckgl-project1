@@ -113,3 +113,11 @@
 - [x] Validate the three final random-forest PowerPoints.
 - [x] Record final deliverables, metrics, insights, hashes, and limitations.
 - [x] Push `main` to `origin/main` and verify synchronization.
+
+## Vercel Deployment Maintenance
+
+- [x] Inspect the failed Vercel build log and identify the failing dependency.
+- [x] Remove local-only HyperFrames and ONNX runtime from the website dependency graph.
+- [x] Preserve the local video workflow through pinned on-demand npm scripts.
+- [x] Add a regression test for the Vercel dependency boundary.
+- [x] Verify a clean npm install, frontend tests, and production build.

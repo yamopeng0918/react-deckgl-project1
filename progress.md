@@ -1203,3 +1203,22 @@ Completed so far:
     `3af06899ca8a7b92342df0e6c9bdb051638658f5`.
 - This final documentation commit records the completed synchronization and
   will be pushed and verified as the final `main` state.
+
+## 2026-07-27 Vercel Deployment Maintenance
+
+- Inspected failed production deployment
+  `react-deckgl-project1-h5ibe067a-yamopeng.vercel.app`.
+- Confirmed the failure occurred during `npm ci`, before the Vite build:
+  `hyperframes` attempted to install `onnxruntime-node`, whose external binary
+  download timed out with `ETIMEDOUT` and `ENETUNREACH`.
+- Confirmed the next production retry was Ready and currently owns the public
+  aliases, so the incident was transient but remained likely to recur.
+- Removed local-only `hyperframes` from the website package dependency graph.
+  This also removes `onnxruntime-node` from Vercel installs.
+- Preserved `hf:doctor`, `hf:preview`, and `hf:render` by invoking the pinned
+  `hyperframes@0.7.45` package on demand through `npx.cmd`.
+- Added `tests/vercelDeploymentConfig.test.js` to prevent HyperFrames from
+  returning to the deploy dependency graph and to lock the on-demand version.
+- A clean standard `npm ci` installed the website dependencies without
+  HyperFrames or ONNX runtime. The deployment regression test and production
+  Vite build passed; the existing large-chunk warning remains accepted.

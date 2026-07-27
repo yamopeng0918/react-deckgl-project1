@@ -110,11 +110,13 @@ npm.cmd run build
 
 ## HyperFrames Video Environment
 
-HeyGen HyperFrames is installed for HTML-to-video work.
+HeyGen HyperFrames is available on demand for HTML-to-video work and is kept
+out of the website dependency graph so Vercel does not install its
+`onnxruntime-node` dependency.
 
-Installed project tooling:
+Local video tooling:
 
-- `hyperframes@0.7.45`
+- `hyperframes@0.7.45`, invoked through the pinned `hf:*` npm scripts or `npx`
 - Local FFmpeg / FFprobe under `tools/ffmpeg/bin/`
 - HyperFrames-managed Chrome Headless Shell cache
 
@@ -191,6 +193,8 @@ Deployment source hygiene:
 
 - Do not commit `node_modules/`.
 - Do not commit generated `dist/`.
+- Keep local-only video tooling out of `dependencies` and `devDependencies`;
+  use the pinned on-demand HyperFrames commands instead.
 - Do not commit local logs or Python `__pycache__` files.
 - `public/data/earthquakes.json` is the frontend data file that must be committed when the processed dataset changes.
 
