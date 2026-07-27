@@ -1,14 +1,22 @@
 import math
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
+from xml.etree import ElementTree
 
 import joblib
+from pptx import Presentation
+from pptx.oxml.ns import qn
 
 from scripts.create_random_forest_feature_importance_powerpoint import (
+    FEATURE_LABELS,
     FEATURE_NAMES,
+    build_deck,
     build_insights,
+    create_feature_importance_powerpoint,
     load_feature_importances,
     rank_feature_importances,
 )
@@ -150,6 +158,202 @@ class FeatureImportanceInsightTest(unittest.TestCase):
         )
 
         self.assertNotIn("不是主要依據", insights[2])
+
+
+class FeatureImportancePowerPointTest(unittest.TestCase):
+    def setUp(self):
+        self.temporary_directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary_directory.name)
+        self.model_path = self.root / "model.joblib"
+        self.output_path = self.root / "feature-importance.pptx"
+        joblib.dump(
+            SimpleNamespace(
+                feature_importances_=[
+                    value for _, value in CURRENT_IMPORTANCES
+                ]
+            ),
+            self.model_path,
+        )
+
+    def tearDown(self):
+        self.temporary_directory.cleanup()
+
+    @staticmethod
+    def _slide_text(slide):
+        return "\n".join(
+            shape.text for shape in slide.shapes if hasattr(shape, "text")
+        )
+
+    @staticmethod
+    def _shape(slide, name):
+        matches = [shape for shape in slide.shapes if shape.name == name]
+        if len(matches) != 1:
+            raise AssertionError(
+                f"expected exactly one shape named {name!r}, got {len(matches)}"
+            )
+        return matches[0]
+
+    def test_builds_one_slide_with_all_ranked_features_and_insights(self):
+        ranked = rank_feature_importances(CURRENT_IMPORTANCES)
+        insights = build_insights(CURRENT_IMPORTANCES)
+
+        deck = build_deck(ranked, insights)
+
+        self.assertEqual(len(deck.slides), 1)
+        self.assertAlmostEqual(
+            deck.slide_width / deck.slide_height,
+            16 / 9,
+            places=2,
+        )
+        slide_text = self._slide_text(deck.slides[0])
+        for label in ("規模", "深度", "經度", "緯度", "月份", "時刻"):
+            self.assertIn(label, slide_text)
+        for insight in insights:
+            self.assertIn(insight, slide_text)
+
+    def test_bars_encode_descending_importances_from_a_shared_zero_baseline(self):
+        ranked = rank_feature_importances(CURRENT_IMPORTANCES)
+        deck = build_deck(ranked, build_insights(CURRENT_IMPORTANCES))
+        slide = deck.slides[0]
+
+        bars = [
+            self._shape(slide, f"importance-bar-{feature_name}")
+            for feature_name, _ in ranked
+        ]
+        labels = [
+            self._shape(slide, f"importance-label-{feature_name}")
+            for feature_name, _ in ranked
+        ]
+        self.assertEqual(len(bars), 6)
+        self.assertEqual([shape.top for shape in bars], sorted(shape.top for shape in bars))
+        self.assertEqual(
+            [shape.top for shape in labels],
+            sorted(shape.top for shape in labels),
+        )
+        self.assertEqual(len({shape.left for shape in bars}), 1)
+
+        maximum_width = bars[0].width
+        maximum_importance = ranked[0][1]
+        for bar, (_, value) in zip(bars[1:], ranked[1:]):
+            self.assertAlmostEqual(
+                bar.width / maximum_width,
+                value / maximum_importance,
+                places=6,
+            )
+
+        for feature_name, value in ranked:
+            value_shape = self._shape(
+                slide,
+                f"importance-value-{feature_name}",
+            )
+            self.assertEqual(value_shape.text, f"{value:.2%}")
+            self.assertEqual(
+                self._shape(
+                    slide,
+                    f"importance-label-{feature_name}",
+                ).text,
+                FEATURE_LABELS[feature_name],
+            )
+
+    def test_all_shapes_stay_inside_slide_and_visible_runs_use_jhenghei(self):
+        deck = build_deck(
+            rank_feature_importances(CURRENT_IMPORTANCES),
+            build_insights(CURRENT_IMPORTANCES),
+        )
+        slide = deck.slides[0]
+
+        for shape in slide.shapes:
+            with self.subTest(shape=shape.name):
+                self.assertGreaterEqual(shape.left, 0)
+                self.assertGreaterEqual(shape.top, 0)
+                self.assertLessEqual(shape.left + shape.width, deck.slide_width)
+                self.assertLessEqual(shape.top + shape.height, deck.slide_height)
+
+            if not getattr(shape, "has_text_frame", False):
+                continue
+            for paragraph in shape.text_frame.paragraphs:
+                for run in paragraph.runs:
+                    if not run.text:
+                        continue
+                    with self.subTest(shape=shape.name, text=run.text):
+                        self.assertEqual(run.font.name, "Microsoft JhengHei")
+                        east_asian = run._r.get_or_add_rPr().find(qn("a:ea"))
+                        self.assertIsNotNone(east_asian)
+                        self.assertEqual(
+                            east_asian.get("typeface"),
+                            "Microsoft JhengHei",
+                        )
+
+    def test_creation_pipeline_writes_a_valid_native_shape_powerpoint(self):
+        result = create_feature_importance_powerpoint(
+            self.model_path,
+            self.output_path,
+        )
+
+        self.assertEqual(result, self.output_path)
+        with zipfile.ZipFile(self.output_path) as package:
+            self.assertIsNone(package.testzip())
+            slide_xml = ElementTree.fromstring(
+                package.read("ppt/slides/slide1.xml")
+            )
+        namespace = {
+            "a": "http://schemas.openxmlformats.org/drawingml/2006/main"
+        }
+        self.assertEqual(slide_xml.findall(".//a:blip", namespace), [])
+
+        reopened = Presentation(self.output_path)
+        self.assertEqual(len(reopened.slides), 1)
+        self.assertAlmostEqual(
+            reopened.slide_width / reopened.slide_height,
+            16 / 9,
+            places=2,
+        )
+
+    def test_save_failure_preserves_existing_output_and_cleans_temporary_file(self):
+        self.output_path.write_bytes(b"existing deck")
+
+        class FailingDeck:
+            def save(self, _path):
+                raise OSError("simulated save failure")
+
+        with patch(
+            "scripts.create_random_forest_feature_importance_powerpoint.build_deck",
+            return_value=FailingDeck(),
+        ):
+            with self.assertRaisesRegex(OSError, "simulated save failure"):
+                create_feature_importance_powerpoint(
+                    self.model_path,
+                    self.output_path,
+                )
+
+        self.assertEqual(self.output_path.read_bytes(), b"existing deck")
+        self.assertEqual(
+            list(self.root.glob(".feature-importance-*.pptx")),
+            [],
+        )
+
+    def test_corrupt_package_preserves_existing_output_and_cleans_temporary_file(self):
+        self.output_path.write_bytes(b"existing deck")
+
+        class CorruptDeck:
+            def save(self, path):
+                Path(path).write_bytes(b"not a PowerPoint package")
+
+        with patch(
+            "scripts.create_random_forest_feature_importance_powerpoint.build_deck",
+            return_value=CorruptDeck(),
+        ):
+            with self.assertRaisesRegex(ValueError, "corrupt"):
+                create_feature_importance_powerpoint(
+                    self.model_path,
+                    self.output_path,
+                )
+
+        self.assertEqual(self.output_path.read_bytes(), b"existing deck")
+        self.assertEqual(
+            list(self.root.glob(".feature-importance-*.pptx")),
+            [],
+        )
 
 
 if __name__ == "__main__":
