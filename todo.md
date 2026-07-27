@@ -97,3 +97,10 @@
 - [x] Show the selected estimator's real root through depth-two rules and explain that final classification uses all 200 forest votes.
 - [x] Independently validate the PowerPoint package, one-slide 16:9 geometry, displayed rules, generated file size, and SHA-256 checksum.
 - [x] Document the rerun command and final verification evidence.
+
+## Random-Forest Feature-Importance PowerPoint
+
+- [x] Add a rerunnable one-slide native PowerPoint chart using the fitted local random-forest model.
+- [x] Rank and display all six normalized feature importances with model-derived spatial and temporal insights.
+- [x] Generate `data/model/random-forest-feature-importance.pptx` and independently validate the package, one-slide 16:9 geometry, native bars, content, fonts, bounds, size, and SHA-256 checksum.
+- [x] Document the rerun command, current values, non-causal interpretation, and verification evidence.

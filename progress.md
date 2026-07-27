@@ -1126,3 +1126,24 @@ Completed so far:
   `python-pptx` and ZIP: no corrupt ZIP member, exactly one 16:9 slide, 25
   shapes within slide bounds, and all seven displayed model-rule strings matched
   the freshly selected estimator's extracted nodes.
+
+## 2026-07-27 Random-Forest Feature-Importance PowerPoint
+
+- Added the rerunnable one-slide native-shape chart at
+  `data/model/random-forest-feature-importance.pptx`. Regenerate it with
+  `python scripts/create_random_forest_feature_importance_powerpoint.py`.
+- The fitted 200-tree random forest ranks its six normalized feature
+  importances as: magnitude 31.13% (`0.31132649`), latitude 21.80%
+  (`0.21795267`), depth 15.96% (`0.15960517`), longitude 14.06%
+  (`0.14064370`), hour 9.52% (`0.09517475`), and month 7.53%
+  (`0.07529723`).
+- Spatial features (longitude plus latitude) total 35.86% (`0.35859637`);
+  temporal features (month plus hour) total 17.05% (`0.17047197`). These are
+  model-reliance scores, not causal effects or earthquake forecasts.
+- Fresh regenerated output: 30,040 bytes; SHA-256
+  `48F85BB3CCAD422B8E25D7A0CCA3F9E8CDA40F8590FCA7F0B3BBB9B36893D7F5`.
+- Verification evidence: complete Python and Vitest suites, production build
+  with only the accepted large-chunk warning, direct deck regeneration, and
+  independent ZIP/OpenXML/model inspection covering its one 16:9 slide, six
+  ranked native bars, exact percentages and insights, East Asian font metadata,
+  in-bounds shapes, byte size, and SHA-256.

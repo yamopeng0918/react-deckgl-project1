@@ -264,6 +264,31 @@ tree selected from the fitted forest. It is an explanation of one tree's
 decision rules, not the final classifier by itself: final classification uses
 the votes of all 200 trees in the selected random forest.
 
+### Random-Forest Feature-Importance PowerPoint
+
+Regenerate the one-slide feature-importance chart from the fitted local
+random-forest model:
+
+```powershell
+python scripts/create_random_forest_feature_importance_powerpoint.py
+```
+
+The output is:
+
+```text
+data/model/random-forest-feature-importance.pptx
+```
+
+The current ranked feature importances are magnitude 31.13% (`0.31132649`),
+latitude 21.80% (`0.21795267`), depth 15.96% (`0.15960517`), longitude
+14.06% (`0.14064370`), hour 9.52% (`0.09517475`), and month 7.53%
+(`0.07529723`). Spatial features (longitude and latitude) total 35.86%;
+temporal features (month and hour) total 17.05%.
+
+These scores describe the fitted model's reliance on the available input
+features. They do not establish causal effects and should not be interpreted
+as earthquake forecasting evidence.
+
 ## Known Limitations
 
 - Base map tiles use OpenStreetMap and require network access for the background map.
