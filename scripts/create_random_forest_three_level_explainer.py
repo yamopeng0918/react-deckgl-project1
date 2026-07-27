@@ -11,6 +11,8 @@ from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.oxml.ns import qn
+from pptx.oxml.xmlchemy import OxmlElement
 from pptx.util import Inches, Pt
 from sklearn.tree import DecisionTreeClassifier
 
@@ -54,6 +56,20 @@ NODE_POSITIONS = {
     1: ((2.15, 2.65), (8.23, 2.65)),
     2: ((0.45, 4.20), (3.45, 4.20), (6.45, 4.20), (9.45, 4.20)),
 }
+
+
+def _set_run_typeface(run):
+    run.font.name = FONT
+    properties = run._r.get_or_add_rPr()
+    east_asian = properties.find(qn("a:ea"))
+    if east_asian is None:
+        east_asian = OxmlElement("a:ea")
+        latin = properties.find(qn("a:latin"))
+        if latin is None:
+            properties.append(east_asian)
+        else:
+            latin.addnext(east_asian)
+    east_asian.set("typeface", FONT)
 
 
 def _validate_model(model):
@@ -202,7 +218,7 @@ def _add_text(
     paragraph.alignment = alignment
     run = paragraph.add_run()
     run.text = value
-    run.font.name = FONT
+    _set_run_typeface(run)
     run.font.size = Pt(size)
     run.font.bold = bold
     run.font.color.rgb = color
@@ -369,7 +385,7 @@ def build_deck(nodes, tree_index, estimator_count) -> Presentation:
         paragraph.alignment = PP_ALIGN.CENTER
         run = paragraph.add_run()
         run.text = _node_copy(node)
-        run.font.name = FONT
+        _set_run_typeface(run)
         run.font.size = Pt(10.5 if node["depth"] == 2 else 11)
         run.font.bold = True
         run.font.color.rgb = text_colors[node["depth"]]

@@ -1,7 +1,10 @@
+from collections import Counter
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
+from xml.etree import ElementTree
 
 import joblib
 from pptx import Presentation
@@ -150,6 +153,24 @@ class RandomForestThreeLevelExplainerPowerPointTest(unittest.TestCase):
             shape.text for shape in slide.shapes if hasattr(shape, "text")
         )
 
+    @staticmethod
+    def _expected_node_texts(nodes):
+        expected = []
+        for node in nodes:
+            if node["is_leaf"]:
+                expected.append(
+                    f"此分支預測震度 {node['dominant_class']}\n"
+                    f"樣本 {node['samples']:,}"
+                )
+            else:
+                expected.append(
+                    f"{FEATURE_LABELS[node['feature_name']]} ≤ "
+                    f"{node['threshold']:.2f}？\n"
+                    f"樣本 {node['samples']:,}｜目前偏向震度 "
+                    f"{node['dominant_class']}"
+                )
+        return expected
+
     def test_build_deck_displays_every_extracted_node_value(self):
         tree_index, tree = select_representative_tree(self.model)
         nodes = extract_three_levels(
@@ -161,21 +182,22 @@ class RandomForestThreeLevelExplainerPowerPointTest(unittest.TestCase):
         deck = build_deck(nodes, tree_index, len(self.model.estimators_))
 
         self.assertEqual(len(deck.slides), 1)
-        slide_text = self._slide_text(deck.slides[0])
-        for node in nodes:
-            if node["is_leaf"]:
-                expected = (
-                    f"此分支預測震度 {node['dominant_class']}\n"
-                    f"樣本 {node['samples']:,}"
-                )
-            else:
-                expected = (
-                    f"{FEATURE_LABELS[node['feature_name']]} ≤ "
-                    f"{node['threshold']:.2f}？\n"
-                    f"樣本 {node['samples']:,}｜目前偏向震度 "
-                    f"{node['dominant_class']}"
-                )
-            self.assertIn(expected, slide_text)
+        expected = self._expected_node_texts(nodes)
+        node_shapes = [
+            shape
+            for shape in deck.slides[0].shapes
+            if hasattr(shape, "text")
+            and (
+                shape.text.startswith("此分支預測震度 ")
+                or "｜目前偏向震度 " in shape.text
+            )
+        ]
+        self.assertLessEqual(len(node_shapes), 7)
+        self.assertEqual(len(node_shapes), len(nodes))
+        self.assertEqual(
+            Counter(shape.text for shape in node_shapes),
+            Counter(expected),
+        )
 
     def test_creates_valid_one_slide_widescreen_native_shape_deck(self):
         result = create_random_forest_three_level_explainer(
@@ -211,6 +233,70 @@ class RandomForestThreeLevelExplainerPowerPointTest(unittest.TestCase):
                 self.assertGreaterEqual(shape.top, 0)
                 self.assertLessEqual(shape.left + shape.width, deck.slide_width)
                 self.assertLessEqual(shape.top + shape.height, deck.slide_height)
+
+    def test_serializes_jhenghei_as_the_east_asian_font_for_every_text_run(self):
+        create_random_forest_three_level_explainer(
+            self.model_path,
+            self.output_path,
+        )
+
+        with zipfile.ZipFile(self.output_path) as package:
+            slide_xml = ElementTree.fromstring(
+                package.read("ppt/slides/slide1.xml")
+            )
+        namespace = {
+            "a": "http://schemas.openxmlformats.org/drawingml/2006/main"
+        }
+        runs = slide_xml.findall(".//a:r", namespace)
+        self.assertGreater(len(runs), 0)
+        for run in runs:
+            with self.subTest(text=run.findtext("a:t", default="", namespaces=namespace)):
+                east_asian = run.find("a:rPr/a:ea", namespace)
+                self.assertIsNotNone(east_asian)
+                self.assertEqual(
+                    east_asian.attrib["typeface"],
+                    "Microsoft JhengHei",
+                )
+
+    def test_save_failure_preserves_existing_output_and_cleans_temporary_file(self):
+        self.output_path.write_bytes(b"existing deck")
+
+        class FailingDeck:
+            def save(self, _path):
+                raise OSError("simulated save failure")
+
+        with patch(
+            "scripts.create_random_forest_three_level_explainer.build_deck",
+            return_value=FailingDeck(),
+        ):
+            with self.assertRaisesRegex(OSError, "simulated save failure"):
+                create_random_forest_three_level_explainer(
+                    self.model_path,
+                    self.output_path,
+                )
+
+        self.assertEqual(self.output_path.read_bytes(), b"existing deck")
+        self.assertEqual(list(self.root.glob(".explainer-*.pptx")), [])
+
+    def test_invalid_generated_package_preserves_output_and_cleans_temporary_file(self):
+        self.output_path.write_bytes(b"existing deck")
+
+        class CorruptDeck:
+            def save(self, path):
+                Path(path).write_bytes(b"not a PowerPoint package")
+
+        with patch(
+            "scripts.create_random_forest_three_level_explainer.build_deck",
+            return_value=CorruptDeck(),
+        ):
+            with self.assertRaisesRegex(ValueError, "corrupt"):
+                create_random_forest_three_level_explainer(
+                    self.model_path,
+                    self.output_path,
+                )
+
+        self.assertEqual(self.output_path.read_bytes(), b"existing deck")
+        self.assertEqual(list(self.root.glob(".explainer-*.pptx")), [])
 
 
 if __name__ == "__main__":
