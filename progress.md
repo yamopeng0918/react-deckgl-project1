@@ -1193,4 +1193,13 @@ Completed so far:
 - Model outputs remain classification evidence, not earthquake forecasting or
   causal conclusions. Rare intensity classes still have insufficient recent
   support for stable recall estimates.
-- Remote synchronization is pending the verified push step.
+- Pre-push close-out commit:
+  `3af06899ca8a7b92342df0e6c9bdb051638658f5`.
+- Verified remote synchronization:
+  - fetched `origin/main` and confirmed it was an ancestor of local `main`;
+  - completed a normal fast-forward push without force;
+  - fetched `origin/main` again and confirmed both local `main` and
+    `origin/main` pointed to
+    `3af06899ca8a7b92342df0e6c9bdb051638658f5`.
+- This final documentation commit records the completed synchronization and
+  will be pushed and verified as the final `main` state.
