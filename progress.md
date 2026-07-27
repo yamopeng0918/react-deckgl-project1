@@ -1154,3 +1154,43 @@ Completed so far:
 - Final-review regression verification:
   - `python -W error::ResourceWarning -m unittest tests.test_create_random_forest_feature_importance_powerpoint -v`: 21 tests passed.
   - `python -W error::ResourceWarning -m unittest discover -s tests -p 'test_*.py' -v`: 89 tests passed.
+
+## 2026-07-27 Final Project Close-Out
+
+- Completed the final pre-push close-out for the Taiwan Earthquake Hotspot
+  Explorer. The rerunnable 1995–2026 data pipeline, React/deck.gl exploration
+  MVP, chronological maximum-intensity model comparison, and all three
+  random-forest PowerPoint deliverables are complete.
+- The generated frontend dataset contains 16,691 earthquake records from 48
+  source CSV files, with 0 invalid exported rows.
+- Chronological 2024–2026 model comparison:
+  - decision tree: accuracy 28.33%, macro recall 30.43%;
+  - random forest: accuracy 43.90%, macro recall 40.81%.
+- Random-forest feature importance:
+  - magnitude 31.13%;
+  - latitude 21.80%;
+  - depth 15.96%;
+  - longitude 14.06%;
+  - hour 9.52%;
+  - month 7.53%;
+  - spatial total 35.86%;
+  - temporal total 17.05%.
+- Fresh final PowerPoint verification:
+  - `data/model/random-forest-results.pptx`: 2 slides, 79,311 bytes,
+    SHA-256 `6EE135805EECD82E1283F08DBBF43D0F50B8A06DBF483449DCCB2EA60B5D46F4`;
+  - `data/model/random-forest-three-level-explainer.pptx`: 1 slide, 30,024
+    bytes, SHA-256
+    `6537F00E1C996CD12CFACE862D59478E49864CCF52071EAB00EADF012925E2F5`;
+  - `data/model/random-forest-feature-importance.pptx`: 1 slide, 30,050
+    bytes, SHA-256
+    `648FA0A6F49B91BDFF489300C759C6447A887322D1CB7D2D7D1726E242D00AAE`.
+- All three PowerPoint files passed fresh ZIP/OpenXML integrity, expected slide
+  count, and 16:9 aspect-ratio checks.
+- Fresh final project verification:
+  - `python -W error::ResourceWarning -m unittest discover -s tests -p 'test_*.py' -v`: 89 tests passed;
+  - `npm.cmd test -- --run`: 24 test files and 96 tests passed;
+  - `npm.cmd run build`: succeeded with only the accepted large-chunk warning.
+- Model outputs remain classification evidence, not earthquake forecasting or
+  causal conclusions. Rare intensity classes still have insufficient recent
+  support for stable recall estimates.
+- Remote synchronization is pending the verified push step.

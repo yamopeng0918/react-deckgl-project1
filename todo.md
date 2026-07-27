@@ -104,3 +104,12 @@
 - [x] Rank and display all six normalized feature importances with model-derived spatial and temporal insights.
 - [x] Generate `data/model/random-forest-feature-importance.pptx` and independently validate the package, one-slide 16:9 geometry, native bars, content, fonts, bounds, size, and SHA-256 checksum.
 - [x] Document the rerun command, current values, non-causal interpretation, and verification evidence.
+
+## Final Project Close-Out
+
+- [x] Rerun the complete Python test suite.
+- [x] Rerun the complete Vitest suite.
+- [x] Rerun the production build.
+- [x] Validate the three final random-forest PowerPoints.
+- [x] Record final deliverables, metrics, insights, hashes, and limitations.
+- [ ] Push `main` to `origin/main` and verify synchronization.
