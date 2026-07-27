@@ -1222,3 +1222,11 @@ Completed so far:
 - A clean standard `npm ci` installed the website dependencies without
   HyperFrames or ONNX runtime. The deployment regression test and production
   Vite build passed; the existing large-chunk warning remains accepted.
+- Pushed fix commit `dc600cd1eb54ef90826f4a4e14885c81bde3bed7` to
+  `origin/main`.
+- Vercel production deployment
+  `react-deckgl-project1-rbc44jqtb-yamopeng.vercel.app` completed with Ready
+  status. Its log installed 269 packages, completed the Vite build in 9.03
+  seconds, and did not install HyperFrames or ONNX runtime.
+- The production alias `https://react-deckgl-project1-kappa.vercel.app/`
+  returned HTTP 200 with the React application root.
